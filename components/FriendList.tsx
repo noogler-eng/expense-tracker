@@ -3,6 +3,7 @@ import { Trash } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { FlatList, View, Text } from "react-native";
 import * as Animatable from "react-native-animatable";
+import Avtar from "./Avtar";
 
 export default function FriendList(props: {
   refreshKey?: number;
@@ -48,17 +49,6 @@ export default function FriendList(props: {
       ItemSeparatorComponent={() => <View className="h-[1px] bg-neutral-800" />}
       renderItem={({ item, index }) => {
         // Darker but colorful palette
-        const colors = [
-          "#8B0000", // dark red
-          "#004080", // deep blue
-          "#006400", // dark green
-          "#4B0082", // indigo
-          "#800000", // maroon
-          "#9932CC", // dark orchid
-          "#B22222", // firebrick
-          "#2F4F4F", // dark slate gray
-        ];
-        const avatarColor = colors[index % colors.length];
 
         return (
           <Animatable.View
@@ -67,17 +57,14 @@ export default function FriendList(props: {
             duration={500}
           >
             <View className="flex flex-row items-center justify-between px-4 py-2 bg-neutral-900 rounded-xl mb-2">
+              
               {/* Left: Avatar + Name */}
               <View className="flex flex-row items-center space-x-3 gap-2">
-                <View
-                  style={{ backgroundColor: avatarColor }}
-                  className="w-8 h-8 rounded-full flex items-center justify-center"
-                >
-                  <Text className="text-white font-bold text-sm">
-                    {item.firstName[0]}
-                    {item.lastName[0]}
-                  </Text>
-                </View>
+                <Avtar
+                  firstName={item.firstName}
+                  lastName={item.lastName}
+                  index={index}
+                />
 
                 <Text className="text-white flex font-medium">
                   {item.firstName} {item.lastName}
