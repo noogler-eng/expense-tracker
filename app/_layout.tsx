@@ -5,9 +5,21 @@ import { TouchableOpacity, View } from "react-native";
 import "@/global.css";
 import Header from "@/components/Header";
 import { Settings2 } from "lucide-react-native";
+import Store from "@/db/Store";
+import React, { useEffect } from "react";
 
 export default function RootLayout() {
   const pathname = usePathname();
+
+  useEffect(() => {
+    const checkUser = async () => {
+      const data = await Store.getCurrentUser();
+      if (data.firstName && data.lastName && pathname === "/onboarding") {
+        router.push("/");
+      }
+    };
+    checkUser();
+  }, [pathname]);
 
   return (
     <View className="flex-1">

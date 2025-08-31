@@ -25,7 +25,7 @@ export default function Avtar({
   return (
     <View className="flex flex-row items-center">
       <View
-        className={`w-10 h-10 rounded-full bg-gray-200 items-center justify-center ${avatarColor}`}
+        className={`w-10 h-10 rounded-full items-center justify-center ${avatarColor}`}
       >
         <Text className="text-white text-sm font-semibold">
           {firstName.charAt(0).toUpperCase()}

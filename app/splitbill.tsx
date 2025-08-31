@@ -53,6 +53,8 @@ export default function SplitBill() {
       Alert.alert("Invalid Amount", "Please enter a valid amount.");
       return;
     }
+
+    console.log(type);
     try {
       await Store.splitAmount(
         Array.from(selectedFriends),
@@ -128,12 +130,12 @@ export default function SplitBill() {
 
                 <Text
                   className={`text-base font-semibold ${
-                    item.balance > 0 ? "text-red-400" : "text-green-400"
+                    item.balance > 0 ? "text-green-400" : "text-red-400"
                   }`}
                 >
                   {item.balance > 0
-                    ? `-₹${Number(item.balance).toFixed(2)}`
-                    : `+₹${Math.abs(Number(item.balance)).toFixed(2)}`}
+                    ? `+₹${Number(item.balance).toFixed(2)}`
+                    : `-₹${Math.abs(Number(item.balance)).toFixed(2)}`}
                 </Text>
               </TouchableOpacity>
             </Animatable.View>
@@ -165,7 +167,7 @@ export default function SplitBill() {
       {/* Type selector */}
       <View className="flex-row mt-6 mb-8">
         <TouchableOpacity
-          onPress={() => setType("outgoing")}
+          onPress={() => setType("incoming")}
           className={`flex-1 py-3 mr-2 rounded-xl items-center ${
             type === "incoming" ? "bg-green-700" : "bg-neutral-800"
           }`}
@@ -173,7 +175,7 @@ export default function SplitBill() {
           <Text className="text-white font-semibold">Add</Text>
         </TouchableOpacity>
         <TouchableOpacity
-          onPress={() => setType("incoming")}
+          onPress={() => setType("outgoing")}
           className={`flex-1 py-3 ml-2 rounded-xl items-center ${
             type === "outgoing" ? "bg-red-700" : "bg-neutral-800"
           }`}

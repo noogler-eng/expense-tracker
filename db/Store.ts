@@ -134,10 +134,10 @@ export default class Store {
 
     if (type === "incoming") {
       data.totalIncoming += amount;
-      friend.balance -= amount;
+      friend.balance += amount;
     } else {
       data.totalOutgoing += amount;
-      friend.balance += amount;
+      friend.balance -= amount;
     }
 
     friend.history.push({
@@ -180,6 +180,7 @@ export default class Store {
 
       const splitValue = totalAmount / friendIds.length;
 
+      console.log(type)
       friendIds.forEach((friendId) => {
         const friend = data.friends.find((f: any) => f.id === friendId);
         if (friend) {

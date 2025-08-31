@@ -75,12 +75,12 @@ export default function FriendList(props: {
               <View className="flex flex-row items-center space-x-2">
                 <Text
                   className={`text-base font-semibold ${
-                    item.balance > 0 ? "text-red-400" : "text-green-400"
+                    item.balance > 0 ? "text-green-400" : "text-red-400"
                   }`}
                 >
                   {item.balance > 0
-                    ? `-₹${Number(item.balance).toFixed(2)}`
-                    : `+₹${Math.abs(Number(item.balance)).toFixed(2)}`}
+                    ? `₹${Number(item.balance).toFixed(2).toString()}`
+                    : `-₹${Math.abs(Number(item.balance)).toFixed(2).toString()}`}
                 </Text>
                 <Trash
                   className="text-neutral-500"

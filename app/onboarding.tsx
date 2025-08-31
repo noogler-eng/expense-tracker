@@ -8,13 +8,15 @@ import {
   Platform,
 } from "react-native";
 import Animated, { FadeInDown } from "react-native-reanimated";
-import { useRouter } from "expo-router";
+import { usePathname, useRouter } from "expo-router";
 import Store from "@/db/Store";
 
 export default function Onboarding() {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const router = useRouter();
+
+  const pathname = usePathname();
 
   const handleStart = async () => {
     if (!firstName.trim() || !lastName.trim()) return;
@@ -30,7 +32,7 @@ export default function Onboarding() {
       }
     };
     isPresent();
-  }, []);
+  }, [pathname]);
 
   return (
     <KeyboardAvoidingView
