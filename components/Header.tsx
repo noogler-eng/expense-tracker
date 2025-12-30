@@ -1,4 +1,5 @@
 import { LinearGradient } from "expo-linear-gradient";
+import { usePathname } from "expo-router";
 import React, { useEffect, useRef } from "react";
 import { Animated, Text, View } from "react-native";
 
@@ -20,6 +21,8 @@ export default function Header({
   const dividerAnim = useRef(new Animated.Value(0)).current;
   const glowAnim = useRef(new Animated.Value(0)).current;
   const shimmerAnim = useRef(new Animated.Value(0)).current;
+
+  const pathname = usePathname();
 
   useEffect(() => {
     // Entrance animations
@@ -151,10 +154,10 @@ export default function Header({
         </View>
 
         {/* Right component */}
-        {rightComponent && ( 
+        {pathname !== "/onboarding" && rightComponent && ( 
           <View className="h-10 w-10 rounded-full bg-neutral-900 border border-neutral-800 items-center justify-center"> 
             {rightComponent} 
-            </View>
+          </View>
         )}
       </View>
 

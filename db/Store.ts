@@ -18,6 +18,9 @@ interface Friend {
 interface AppData {
   firstName: string;
   lastName: string;
+  dateOfBirth?: string;
+  gender?: string;
+  income?: string;
   totalIncoming: number;
   totalOutgoing: number;
   friends: Friend[];
@@ -25,6 +28,15 @@ interface AppData {
 
 export default class Store {
   private static STORAGE_KEY = "expense_tracker_data";
+
+  static async clearCache() {
+    try {
+      await AsyncStorage.removeItem(Store.STORAGE_KEY);
+    } catch (error) {
+      console.error("Error clearing cache:", error);
+      throw error;
+    }
+  }
 
   private static async getData(): Promise<AppData> {
     try {
@@ -34,6 +46,9 @@ export default class Store {
         : {
             firstName: "",
             lastName: "",
+            dateOfBirth: undefined,
+            gender: undefined,
+            income: undefined,
             totalIncoming: 0,
             totalOutgoing: 0,
             friends: [],
@@ -72,11 +87,14 @@ export default class Store {
   }
 
   // Set current user name
-  static async setCurrentUser(firstName: string, lastName: string) {
+  static async setCurrentUser({firstName, lastName, dateOfBirth, gender, income}: {firstName: string, lastName: string, dateOfBirth?: string, gender?: string, income?: string}) {
     try {
       const data = await Store.getData();
       data.firstName = firstName;
       data.lastName = lastName;
+      if (dateOfBirth !== undefined) data.dateOfBirth = dateOfBirth;
+      if (gender !== undefined) data.gender = gender;
+      if (income !== undefined) data.income = income;
       await Store.saveData(data);
     } catch (error) {
       console.error("Error saving current user:", error);

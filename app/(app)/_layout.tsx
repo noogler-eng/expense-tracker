@@ -30,7 +30,7 @@ export default function RootLayout() {
     };
 
     checkUser();
-  }, [checked, pathname]);
+  }, [checked]);
 
   if (!checked) return null;
 
@@ -39,7 +39,7 @@ export default function RootLayout() {
       <Header
         subtitle="Your personal expense tracker"
         rightComponent={
-          <TouchableOpacity onPress={() => router.push("/setting")}>
+          <TouchableOpacity onPress={() => router.replace("/setting")}>
             <Settings2 size={24} color="#eee" />
           </TouchableOpacity>
         }
