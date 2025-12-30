@@ -74,15 +74,6 @@ export default function Index() {
 
   return (
     <View className="flex-1 bg-black px-6 pt-12">
-      {/* App Header */}
-      <Animatable.Text
-        animation="fadeInDown"
-        duration={700}
-        className="text-white text-3xl font-bold mb-6"
-      >
-        SplitMate
-      </Animatable.Text>
-
       {/* Welcome Message */}
       <Animatable.View animation="fadeInDown" duration={800}>
         <Text className="text-gray-400 text-lg">Welcome back,</Text>

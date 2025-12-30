@@ -1,19 +1,19 @@
+import { useRouter } from "expo-router";
+import {
+  Clock,
+  DollarSign,
+  Home,
+  Plus,
+  Receipt,
+  UserPlus,
+} from "lucide-react-native";
 import React, { useState } from "react";
-import { TouchableOpacity, View, Text } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
 } from "react-native-reanimated";
-import {
-  Home,
-  Plus,
-  UserPlus,
-  Receipt,
-  DollarSign,
-  Clock,
-} from "lucide-react-native";
-import { useRouter } from "expo-router";
 
 const FloatingActionMenu = () => {
   const [open, setOpen] = useState(false);
