@@ -55,16 +55,6 @@ export default function Onboarding() {
       className="flex-1 bg-[#0B0B0D]"
       behavior={Platform.OS === "ios" ? "padding" : undefined}
     >
-      {/* Background Gradient */}
-      <View className="absolute inset-0">
-        <LinearGradient
-          colors={["#0B0B0D", "#17081bff", "#0B0B0D"]}
-          start={{ x: 0, y: 0 }}
-          end={{ x: 1, y: 1 }}
-          className="flex-1"
-        />
-      </View>
-
       <View className="flex-1 items-center justify-center px-6">
         {/* App Name */}
         <Animated.Text

@@ -1,7 +1,7 @@
 import Store from "@/db/Store";
 import { Trash } from "lucide-react-native";
 import { useEffect, useState } from "react";
-import { FlatList, View, Text } from "react-native";
+import { FlatList, Text, View } from "react-native";
 import * as Animatable from "react-native-animatable";
 import Avtar from "./Avtar";
 
@@ -26,16 +26,16 @@ export default function FriendList(props: {
 
   if (!friends || friends.length === 0) {
     return (
-      <View className="flex-1 bg-black items-center justify-center px-6">
+      <View className="flex-1 items-center justify-center px-6">
         <Animatable.Text
           animation="fadeIn"
           duration={500}
-          className="text-neutral-400 text-lg text-center"
+          className="text-neutral-400 text-base text-center"
         >
           You haven’t added any friends yet.
         </Animatable.Text>
-        <Text className="text-neutral-500 text-sm mt-2">
-          Tap the + button to add your first friend.
+        <Text className="text-neutral-500 text-sm mt-2 text-center">
+          Save friends to easily split expenses with them.
         </Text>
       </View>
     );
@@ -46,45 +46,56 @@ export default function FriendList(props: {
       data={friends}
       keyExtractor={(item) => item.id}
       showsVerticalScrollIndicator={false}
-      ItemSeparatorComponent={() => <View className="h-[1px] bg-neutral-800" />}
+      ItemSeparatorComponent={() => (
+        <View className="h-[1px] bg-neutral-800 my-2" />
+      )}
       renderItem={({ item, index }) => {
-        // Darker but colorful palette
-
         return (
           <Animatable.View
             animation="fadeInUp"
             delay={index * 80}
             duration={500}
           >
-            <View className="flex flex-row items-center justify-between px-4 py-2 bg-neutral-900 rounded-xl mb-2">
+            <View className="flex-row items-center justify-between px-4 py-3 bg-[#0F0F12] border border-neutral-800 rounded-2xl">
               
               {/* Left: Avatar + Name */}
-              <View className="flex flex-row items-center space-x-3 gap-2">
+              <View className="flex-row items-center gap-3">
                 <Avtar
                   firstName={item.firstName}
                   lastName={item.lastName}
                   index={index}
                 />
 
-                <Text className="text-white flex font-medium">
-                  {item.firstName} {item.lastName}
-                </Text>
+                <Text
+                className="text-white text-base font-medium max-w-[160px]"
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {item.firstName} {item.lastName}
+              </Text>
               </View>
 
-              {/* Right: Balance */}
-              <View className="flex flex-row items-center space-x-2">
+              {/* Right: Balance + Trash */}
+              <View className="flex-row items-center gap-3">
                 <Text
-                  className={`text-base font-semibold ${
-                    item.balance > 0 ? "text-green-400" : "text-red-400"
+                  className={`text-sm font-semibold ${
+                    Number(item.balance) === 0
+                      ? "text-white"
+                      : item.balance > 0
+                      ? "text-green-400"
+                      : "text-red-400"
                   }`}
                 >
-                  {item.balance > 0
-                    ? `₹${Number(item.balance).toFixed(2).toString()}`
-                    : `-₹${Math.abs(Number(item.balance)).toFixed(2).toString()}`}
+                  {Number(item.balance) === 0
+                    ? "₹0.00"
+                    : item.balance > 0
+                    ? `₹${Number(item.balance).toFixed(2)}`
+                    : `-₹${Math.abs(Number(item.balance)).toFixed(2)}`}
                 </Text>
+
                 <Trash
-                  className="text-neutral-500"
-                  size={20}
+                  size={18}
+                  color="#737373"
                   onPress={() => {
                     Store.removeFriend(item.id);
                     props.setRefreshKey

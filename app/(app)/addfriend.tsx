@@ -1,7 +1,7 @@
-import React, { useState, useEffect } from "react";
-import { View, Text, TextInput, TouchableOpacity, Alert } from "react-native";
-import Store from "@/db/Store";
 import FriendList from "@/components/FriendList";
+import Store from "@/db/Store";
+import React, { useState } from "react";
+import { Text, TextInput, TouchableOpacity, View } from "react-native";
 
 export default function AddFriend() {
   const [firstName, setFirstName] = useState("");
@@ -10,18 +10,15 @@ export default function AddFriend() {
 
   const handleAddFriend = async () => {
     if (!firstName.trim() || !lastName.trim()) {
-      Alert.alert("Missing Info", "Please enter both first and last name.");
       return;
     }
     try {
       await Store.addFriend(firstName.trim(), lastName.trim());
-      Alert.alert("Success", "Friend added successfully!");
       setFirstName("");
       setLastName("");
       setRefreshKey((prev) => prev + 1);
     } catch (error) {
       console.error(error);
-      Alert.alert("Error", "Could not add friend.");
     }
   };
 
