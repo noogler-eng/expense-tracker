@@ -1,14 +1,13 @@
+import Store from "@/db/Store";
+import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
-  View,
+  FlatList,
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
-  FlatList,
+  View
 } from "react-native";
-import Store from "@/db/Store";
-import { useRouter } from "expo-router";
 
 export default function AddExpense() {
   const [friends, setFriends] = useState<any[]>([]);
@@ -21,20 +20,19 @@ export default function AddExpense() {
   useEffect(() => {
     const fetchFriends = async () => {
       const userData = await Store.getCurrentUser();
-      setFriends(userData.friends || []);
+      setFriends(userData?.friends || []);
     };
     fetchFriends();
   }, []);
 
   const handleSave = async () => {
     if (!selectedFriend) {
-      Alert.alert("Select Friend", "Please select a friend.");
       return;
     }
     if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
-      Alert.alert("Invalid Amount", "Please enter a valid amount.");
       return;
     }
+
     try {
       await Store.addMoneyToFriend(
         selectedFriend,
@@ -42,113 +40,160 @@ export default function AddExpense() {
         description || "No description",
         type
       );
-      Alert.alert("Success", "Expense added!");
       setAmount("");
       setDescription("");
       setSelectedFriend(null);
-
-      router.push("/");
-    } catch (error) {
-      console.error(error);
-      Alert.alert("Error", "Could not add expense.");
+    } catch {
+      console.error("Error adding expense");
     }
   };
 
   const colors = [
-    "#8B0000",
-    "#004080",
-    "#006400",
-    "#4B0082",
-    "#800000",
-    "#9932CC",
-    "#B22222",
-    "#2F4F4F",
+    "#7C2D12",
+    "#1E3A8A",
+    "#14532D",
+    "#312E81",
+    "#7F1D1D",
+    "#581C87",
+    "#7C2D12",
+    "#1F2933",
   ];
 
   return (
-    <View className="flex-1 bg-black px-6 py-8">
-      <Text className="text-white text-2xl font-bold mb-6">Add Expense</Text>
+    <View className="flex-1 bg-[#0B0B0D] px-6 pt-4">
+      {/* Header */}
+      <View className="mb-8">
+        <Text className="text-white text-3xl font-bold">Add Expense</Text>
+        <Text className="text-neutral-400 text-sm mt-1">
+          Record money given or received
+        </Text>
+      </View>
 
-      {/* Friends List */}
-      <Text className="text-neutral-300 mb-2">Select Friend</Text>
+      {/* Friends */}
+      <Text className="text-neutral-500 text-xs uppercase tracking-widest mb-3">
+        Select Friend
+      </Text>
+
       <FlatList
         data={friends}
         keyExtractor={(item) => item.id}
         horizontal
         showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 6 }}
         renderItem={({ item, index }) => {
           const avatarColor = colors[index % colors.length];
           const isSelected = selectedFriend === item.id;
+
           return (
             <TouchableOpacity
               onPress={() => setSelectedFriend(item.id)}
-              className={`items-center mr-4 ${
-                isSelected ? "opacity-100" : "opacity-60"
-              }`}
+              activeOpacity={0.85}
+              className="items-center mr-4"
             >
               <View
                 style={{ backgroundColor: avatarColor }}
-                className="w-12 h-12 rounded-full items-center justify-center"
+                className={`w-12 h-12 rounded-full items-center justify-center border ${
+                  isSelected
+                    ? "border-white"
+                    : "border-transparent"
+                }`}
               >
-                <Text className="text-white font-bold text-lg">
+                <Text className="text-white font-semibold text-base">
                   {item.firstName[0]}
                   {item.lastName[0]}
                 </Text>
               </View>
-              <Text className="text-white mt-1 text-xs">{item.firstName}</Text>
+
+              <Text
+                className={`mt-2 text-xs ${
+                  isSelected
+                    ? "text-white"
+                    : "text-neutral-500"
+                }`}
+                numberOfLines={1}
+              >
+                {item.firstName}
+              </Text>
             </TouchableOpacity>
           );
         }}
       />
 
       {/* Amount */}
-      <Text className="text-neutral-300 mt-6 mb-2">Amount</Text>
+      <Text className="text-neutral-500 text-xs uppercase tracking-widest mt-8 mb-2">
+        Amount
+      </Text>
       <TextInput
         value={amount}
         onChangeText={setAmount}
         placeholder="Enter amount"
         keyboardType="numeric"
-        placeholderTextColor="#6b7280"
-        className="bg-neutral-900 text-white px-4 py-3 rounded-xl"
+        placeholderTextColor="#6B7280"
+        className="bg-[#0F0F12] border border-neutral-800 text-white px-5 py-4 rounded-2xl"
       />
 
       {/* Description */}
-      <Text className="text-neutral-300 mt-6 mb-2">Description</Text>
+      <Text className="text-neutral-500 text-xs uppercase tracking-widest mt-6 mb-2">
+        Description
+      </Text>
       <TextInput
         value={description}
         onChangeText={setDescription}
-        placeholder="Enter description"
-        placeholderTextColor="#6b7280"
-        className="bg-neutral-900 text-white px-4 py-3 rounded-xl"
+        placeholder="Optional note"
+        placeholderTextColor="#6B7280"
+        className="bg-[#0F0F12] border border-neutral-800 text-white px-5 py-4 rounded-2xl"
       />
 
-      {/* Type Selector */}
-      <View className="flex-row mt-6 mb-8">
+      {/* Type */}
+      <View className="flex-row mt-6 mb-10">
         <TouchableOpacity
           onPress={() => setType("incoming")}
-          className={`flex-1 py-3 mr-2 rounded-xl items-center ${
-            type === "incoming" ? "bg-green-700" : "bg-neutral-800"
+          className={`flex-1 py-4 mr-2 rounded-2xl items-center ${
+            type === "incoming"
+              ? "bg-green-500/20"
+              : "bg-[#0F0F12]"
           }`}
         >
-          <Text className="text-white font-semibold">Add</Text>
+          <Text
+            className={`font-semibold ${
+              type === "incoming"
+                ? "text-green-400"
+                : "text-neutral-400"
+            }`}
+          >
+            Add
+          </Text>
         </TouchableOpacity>
+
         <TouchableOpacity
           onPress={() => setType("outgoing")}
-          className={`flex-1 py-3 ml-2 rounded-xl items-center ${
-            type === "outgoing" ? "bg-red-700" : "bg-neutral-800"
+          className={`flex-1 py-4 ml-2 rounded-2xl items-center ${
+            type === "outgoing"
+              ? "bg-red-500/20"
+              : "bg-[#0F0F12]"
           }`}
         >
-          <Text className="text-white font-semibold">Deduct</Text>
+          <Text
+            className={`font-semibold ${
+              type === "outgoing"
+                ? "text-red-400"
+                : "text-neutral-400"
+            }`}
+          >
+            Deduct
+          </Text>
         </TouchableOpacity>
       </View>
 
-      {/* Save Button */}
+      {/* CTA */}
       <TouchableOpacity
         onPress={handleSave}
-        className="bg-neutral-700 py-4 rounded-xl items-center"
-        activeOpacity={0.8}
+        activeOpacity={0.85}
+        className="bg-white py-4 mb-8 rounded-2xl items-center"
       >
-        <Text className="text-white text-lg font-semibold">Save Expense</Text>
+        <Text className="text-black text-lg font-semibold">
+          Save Expense
+        </Text>
       </TouchableOpacity>
     </View>
   );

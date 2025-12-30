@@ -105,6 +105,7 @@ export default class Store {
   static async getCurrentUser(): Promise<{
     firstName: string;
     lastName: string;
+    income: number;
     incoming: any;
     outgoing: any;
     friends: any;
@@ -113,6 +114,7 @@ export default class Store {
     return {
       firstName: data.firstName,
       lastName: data.lastName,
+      income: data.income ? Number(data.income) : 0,
       incoming: data.totalIncoming,
       outgoing: data.totalOutgoing,
       friends: data.friends,
@@ -211,7 +213,7 @@ export default class Store {
           }
 
           friend.history.push({
-            type: "split",
+            type: type,
             amount: splitValue,
             description,
             date: new Date().toISOString(),

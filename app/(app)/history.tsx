@@ -1,13 +1,13 @@
+import HistoryList from "@/components/HistoryList";
+import Store from "@/db/Store";
 import React, { useEffect, useState } from "react";
 import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
   ActivityIndicator,
+  FlatList,
+  Text,
+  TouchableOpacity,
+  View,
 } from "react-native";
-import Store from "@/db/Store";
-import HistoryList from "@/components/HistoryList";
 
 interface Transaction {
   amount: number;
@@ -25,21 +25,16 @@ interface Friend {
 }
 
 export default function History() {
-  const [user, setUser] = useState<{
-    firstName: string;
-    lastName: string;
-  } | null>(null);
   const [friends, setFriends] = useState<Friend[]>([]);
   const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const fetchUserAndFriends = async () => {
+    const fetchData = async () => {
       setLoading(true);
       try {
         const userData = await Store.getCurrentUser();
-        setUser({ firstName: userData.firstName, lastName: userData.lastName });
-        setFriends(userData.friends || []);
+        setFriends(userData?.friends || []);
       } catch (error) {
         console.error("Error loading data:", error);
       } finally {
@@ -47,36 +42,36 @@ export default function History() {
       }
     };
 
-    fetchUserAndFriends();
+    fetchData();
   }, []);
 
   if (loading) {
     return (
-      <View className="flex-1 bg-black items-center justify-center">
-        <ActivityIndicator size="large" color="#fff" />
+      <View className="flex-1 bg-[#0B0B0D] items-center justify-center">
+        <ActivityIndicator size="large" color="#FFFFFF" />
       </View>
     );
   }
 
-  // Friends list including self at the top
-  const allFriends = [...friends];
-
-  // When a friend is selected, show their transaction history
   if (selectedFriend) {
-    const history = selectedFriend.history || [];
     return (
-      <View className="flex-1 bg-black px-6 py-8">
-        <Text className="text-white text-2xl font-bold mb-6">
-          {selectedFriend.firstName} {selectedFriend.lastName}'s History
+      <View className="flex-1 bg-[#0B0B0D] px-6 pt-4">
+        <Text className="text-white text-3xl font-bold mb-2">
+          History
         </Text>
+        <Text className="text-neutral-400 text-sm mb-6">
+          {selectedFriend.firstName} {selectedFriend.lastName}
+        </Text>
+
         <TouchableOpacity
           onPress={() => setSelectedFriend(null)}
-          className="mb-4"
+          className="mb-6"
         >
-          <Text className="text-blue-500">Back to Friends List</Text>
+          <Text className="text-blue-400 text-sm">← Back to friends</Text>
         </TouchableOpacity>
+
         <HistoryList
-          transactions={history}
+          transactions={selectedFriend.history || []}
           firstname={selectedFriend.firstName}
           lastname={selectedFriend.lastName}
           id={selectedFriend.id}
@@ -85,60 +80,79 @@ export default function History() {
     );
   }
 
-  // Default: show list of all friends + self to select from
   return (
-    <View className="flex-1 bg-black px-6 py-8">
-      <Text className="text-white text-2xl font-bold mb-6">Select Friend</Text>
+    <View className="flex-1 bg-[#0B0B0D] px-6 pt-4">
+      <Text className="text-white text-3xl font-bold mb-2">
+        History
+      </Text>
+      <Text className="text-neutral-400 text-sm mb-6">
+        Select a friend to view transactions
+      </Text>
+
       <FlatList
-        data={allFriends}
+        data={friends}
         keyExtractor={(item) => item.id}
+        showsVerticalScrollIndicator={false}
         renderItem={({ item, index }) => {
           const colors = [
-            "#8B0000",
-            "#004080",
-            "#006400",
-            "#4B0082",
-            "#800000",
-            "#9932CC",
-            "#B22222",
-            "#2F4F4F",
+            "#7C2D12",
+            "#1E3A8A",
+            "#14532D",
+            "#312E81",
+            "#7F1D1D",
+            "#581C87",
+            "#7C2D12",
+            "#1F2933",
           ];
           const avatarColor = colors[index % colors.length];
+          const balance = Number(item.balance);
 
           return (
             <TouchableOpacity
               onPress={() => setSelectedFriend(item)}
-              className="flex-row items-center justify-between px-4 py-3 bg-neutral-900 rounded-xl mb-3"
+              activeOpacity={0.85}
+              className="flex-row items-center justify-between px-4 py-4 bg-[#0F0F12] border border-neutral-800 rounded-2xl mb-3"
             >
-              <View className="flex-row items-center space-x-3">
+              {/* Left */}
+              <View className="flex-row items-center gap-3">
                 <View
                   style={{ backgroundColor: avatarColor }}
-                  className="w-10 h-10 rounded-full flex items-center justify-center"
+                  className="w-10 h-10 rounded-full items-center justify-center"
                 >
-                  <Text className="text-white font-bold text-lg">
+                  <Text className="text-white font-semibold text-sm">
                     {item.firstName[0]}
                     {item.lastName[0]}
                   </Text>
                 </View>
 
-                <Text className="text-white text-lg font-medium">
+                <Text
+                  className="text-white text-base font-medium max-w-[160px]"
+                  numberOfLines={1}
+                  ellipsizeMode="tail"
+                >
                   {item.firstName} {item.lastName}
                 </Text>
               </View>
 
+              {/* Balance */}
               <Text
-                className={`text-lg font-semibold ${
-                  item.balance > 0 ? "text-red-400" : "text-green-400"
+                className={`text-sm font-semibold ${
+                  item.balance === 0
+                    ? "text-white"
+                    : item.balance > 0
+                    ? "text-green-400"
+                    : "text-red-400"
                 }`}
               >
-                {item.balance > 0
-                  ? `-₹${item.balance.toFixed(2)}`
-                  : `+₹${Math.abs(item.balance).toFixed(2)}`}
+                {balance === 0
+                  ? "₹0.00"
+                  : balance > 0
+                  ? `-₹${balance.toFixed(2)}`
+                  : `+₹${Math.abs(balance).toFixed(2)}`}
               </Text>
             </TouchableOpacity>
           );
         }}
-        showsVerticalScrollIndicator={false}
       />
     </View>
   );

@@ -109,7 +109,7 @@ export default function Setting() {
   useEffect(() => {
     const loadUser = async () => {
       try {
-        const user: User = await Store.getCurrentUser();
+        const user: any = await Store.getCurrentUser();
 
         setFirstName(user.firstName ?? "");
         setLastName(user.lastName ?? "");
@@ -133,12 +133,18 @@ export default function Setting() {
 
   // Save handler
   const handleSave = async () => {
-    if (!firstName.trim() || !lastName.trim()) {
-      return;
-    }
+    if (!firstName.trim() || !lastName.trim()) return;
 
     setLoading(true);
     try {
+      console.log("saving user data...", {
+        firstName: firstName.trim(),
+        lastName: lastName.trim(),
+        dateOfBirth,
+        gender,
+        income,
+      });
+
       await Store.setCurrentUser({
         firstName: firstName.trim(),
         lastName: lastName.trim(),

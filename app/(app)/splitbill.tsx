@@ -1,20 +1,17 @@
+import Store from "@/db/Store";
 import React, { useEffect, useState } from "react";
 import {
-  View,
+  FlatList,
   Text,
   TextInput,
   TouchableOpacity,
-  Alert,
-  FlatList,
+  View
 } from "react-native";
-import Store from "@/db/Store";
 import * as Animatable from "react-native-animatable";
 
 export default function SplitBill() {
   const [friends, setFriends] = useState<any[]>([]);
-  const [selectedFriends, setSelectedFriends] = useState<Set<string>>(
-    new Set()
-  );
+  const [selectedFriends, setSelectedFriends] = useState<Set<string>>(new Set());
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [type, setType] = useState<"incoming" | "outgoing">("incoming");
@@ -24,37 +21,26 @@ export default function SplitBill() {
   }, []);
 
   const loadFriends = async () => {
-    try {
-      const userData = await Store.getCurrentUser();
-      setFriends(userData.friends || []);
-    } catch (error) {
-      console.error("Failed to load friends:", error);
-    }
+    const userData = await Store.getCurrentUser();
+    setFriends(userData?.friends || []);
   };
 
   const toggleFriendSelection = (id: string) => {
     setSelectedFriends((prev) => {
-      const newSet = new Set(prev);
-      if (newSet.has(id)) {
-        newSet.delete(id);
-      } else {
-        newSet.add(id);
-      }
-      return newSet;
+      const set = new Set(prev);
+      set.has(id) ? set.delete(id) : set.add(id);
+      return set;
     });
   };
 
   const handleSplit = async () => {
     if (selectedFriends.size === 0) {
-      Alert.alert("No Friends Selected", "Please select at least one friend.");
       return;
     }
     if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
-      Alert.alert("Invalid Amount", "Please enter a valid amount.");
       return;
     }
 
-    console.log(type);
     try {
       await Store.splitAmount(
         Array.from(selectedFriends),
@@ -62,80 +48,103 @@ export default function SplitBill() {
         description || "No description",
         type
       );
-      Alert.alert("Success", "Amount split successfully!");
       setAmount("");
       setDescription("");
       setSelectedFriends(new Set());
-      await loadFriends();
-    } catch (error) {
-      console.error(error);
-      Alert.alert("Error", "Failed to split amount.");
+      loadFriends();
+    } catch {
+      console.error("Error splitting amount");
     }
   };
 
   const colors = [
-    "#8B0000",
-    "#004080",
-    "#006400",
-    "#4B0082",
-    "#800000",
-    "#9932CC",
-    "#B22222",
-    "#2F4F4F",
+    "#7C2D12",
+    "#1E3A8A",
+    "#14532D",
+    "#312E81",
+    "#7F1D1D",
+    "#581C87",
+    "#7C2D12",
+    "#1F2933",
   ];
 
   return (
-    <View className="flex-1 bg-black px-6 py-8">
-      <Text className="text-white text-2xl font-bold mb-6">Split Bill</Text>
+    <View className="flex-1 bg-[#0B0B0D] px-6">
+      {/* Header */}
+      <View className="mb-6">
+        <Text className="text-white text-3xl font-bold">Split Bill</Text>
+        <Text className="text-neutral-400 text-sm mt-1">
+          Divide expenses among friends
+        </Text>
+      </View>
 
-      <Text className="text-neutral-300 mb-2">Select Friends</Text>
+      {/* Friends */}
+      <Text className="text-neutral-500 text-xs uppercase tracking-widest mb-3">
+        Select Friends
+      </Text>
+
       <FlatList
         data={friends}
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
-        ItemSeparatorComponent={() => (
-          <View className="h-[1px] bg-neutral-800" />
-        )}
+        contentContainerStyle={{ paddingBottom: 12 }}
         renderItem={({ item, index }) => {
           const avatarColor = colors[index % colors.length];
           const isSelected = selectedFriends.has(item.id);
+          const balance = Number(item.balance);
+
           return (
             <Animatable.View
               animation="fadeInUp"
-              delay={index * 80}
-              duration={500}
-              key={item.id}
+              delay={index * 60}
+              duration={450}
+              className="mb-3"
             >
               <TouchableOpacity
-                activeOpacity={0.8}
+                activeOpacity={0.85}
                 onPress={() => toggleFriendSelection(item.id)}
-                className={`flex-row items-center justify-between px-4 py-2 rounded-xl mb-2 ${
-                  isSelected ? "bg-neutral-700" : "bg-neutral-900"
+                className={`flex-row items-center justify-between px-4 py-3 rounded-2xl border ${
+                  isSelected
+                    ? "bg-white/5 border-white/20"
+                    : "bg-[#0F0F12] border-neutral-800"
                 }`}
               >
-                <View className="flex-row items-center space-x-3">
+                {/* Left */}
+                <View className="flex-row items-center gap-3">
                   <View
                     style={{ backgroundColor: avatarColor }}
-                    className="w-8 h-8 rounded-full flex items-center justify-center"
+                    className="w-9 h-9 rounded-full items-center justify-center"
                   >
-                    <Text className="text-white font-bold text-sm">
+                    <Text className="text-white text-sm font-semibold">
                       {item.firstName[0]}
                       {item.lastName[0]}
                     </Text>
                   </View>
-                  <Text className="text-white font-medium">
+
+                  <Text
+                    className="text-white text-base font-medium max-w-[160px]"
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
                     {item.firstName} {item.lastName}
                   </Text>
                 </View>
 
+                {/* Right balance */}
                 <Text
-                  className={`text-base font-semibold ${
-                    item.balance > 0 ? "text-green-400" : "text-red-400"
+                  className={`text-sm font-semibold ${
+                    balance === 0
+                      ? "text-white"
+                      : balance > 0
+                      ? "text-green-400"
+                      : "text-red-400"
                   }`}
                 >
-                  {item.balance > 0
-                    ? `+₹${Number(item.balance).toFixed(2)}`
-                    : `-₹${Math.abs(Number(item.balance)).toFixed(2)}`}
+                  {balance === 0
+                    ? "₹0.00"
+                    : balance > 0
+                    ? `₹${balance.toFixed(2)}`
+                    : `-₹${Math.abs(balance).toFixed(2)}`}
                 </Text>
               </TouchableOpacity>
             </Animatable.View>
@@ -143,54 +152,73 @@ export default function SplitBill() {
         }}
       />
 
-      {/* Amount input */}
-      <Text className="text-neutral-300 mt-4 mb-2">Total Amount</Text>
+      {/* Amount */}
+      <Text className="text-neutral-500 text-xs uppercase tracking-widest mt-4 mb-2">
+        Total Amount
+      </Text>
       <TextInput
         value={amount}
         onChangeText={setAmount}
         placeholder="Enter total amount"
         keyboardType="numeric"
-        placeholderTextColor="#6b7280"
-        className="bg-neutral-900 text-white px-4 py-3 rounded-xl"
+        placeholderTextColor="#6B7280"
+        className="bg-[#0F0F12] border border-neutral-800 text-white px-5 py-4 rounded-2xl"
       />
 
-      {/* Description input */}
-      <Text className="text-neutral-300 mt-4 mb-2">Description</Text>
+      {/* Description */}
+      <Text className="text-neutral-500 text-xs uppercase tracking-widest mt-4 mb-2">
+        Description
+      </Text>
       <TextInput
         value={description}
         onChangeText={setDescription}
-        placeholder="Enter description"
-        placeholderTextColor="#6b7280"
-        className="bg-neutral-900 text-white px-4 py-3 rounded-xl"
+        placeholder="Optional note"
+        placeholderTextColor="#6B7280"
+        className="bg-[#0F0F12] border border-neutral-800 text-white px-5 py-4 rounded-2xl"
       />
 
-      {/* Type selector */}
+      {/* Type */}
       <View className="flex-row mt-6 mb-8">
         <TouchableOpacity
           onPress={() => setType("incoming")}
-          className={`flex-1 py-3 mr-2 rounded-xl items-center ${
-            type === "incoming" ? "bg-green-700" : "bg-neutral-800"
+          className={`flex-1 py-4 mr-2 rounded-2xl items-center ${
+            type === "incoming" ? "bg-green-500/20" : "bg-[#0F0F12]"
           }`}
         >
-          <Text className="text-white font-semibold">Add</Text>
+          <Text
+            className={`font-semibold ${
+              type === "incoming" ? "text-green-400" : "text-neutral-400"
+            }`}
+          >
+            Add
+          </Text>
         </TouchableOpacity>
+
         <TouchableOpacity
           onPress={() => setType("outgoing")}
-          className={`flex-1 py-3 ml-2 rounded-xl items-center ${
-            type === "outgoing" ? "bg-red-700" : "bg-neutral-800"
+          className={`flex-1 py-4 ml-2 rounded-2xl items-center ${
+            type === "outgoing" ? "bg-red-500/20" : "bg-[#0F0F12]"
           }`}
         >
-          <Text className="text-white font-semibold">Deduct</Text>
+          <Text
+            className={`font-semibold ${
+              type === "outgoing" ? "text-red-400" : "text-neutral-400"
+            }`}
+          >
+            Deduct
+          </Text>
         </TouchableOpacity>
       </View>
 
-      {/* Save button */}
+      {/* CTA */}
       <TouchableOpacity
         onPress={handleSplit}
-        className="bg-neutral-700 py-4 rounded-xl items-center"
-        activeOpacity={0.8}
+        activeOpacity={0.85}
+        className="bg-white py-4 mb-8 rounded-2xl items-center"
       >
-        <Text className="text-white text-lg font-semibold">Split Amount</Text>
+        <Text className="text-black text-lg font-semibold">
+          Split Amount
+        </Text>
       </TouchableOpacity>
     </View>
   );

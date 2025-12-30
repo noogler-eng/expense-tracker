@@ -163,7 +163,7 @@ export default function Header({
           </View>
         )}
 
-        {pathname !== "/onboarding" && pathname !== "/" && ( 
+        {pathname !== "/onboarding" && pathname === "/setting" && ( 
           <View className="h-10 w-10 rounded-full bg-neutral-900 border border-neutral-800 items-center justify-center"> 
             <TouchableOpacity onPress={() => router.replace("/")}>
               <Home size={24} color="#eee" />

@@ -1,10 +1,10 @@
-import sendMsg from "@/utils/msg";
-import React from "react";
-import { FlatList, Text, View, TouchableOpacity, Share } from "react-native";
-import * as Animatable from "react-native-animatable";
-import { Share2, Trash } from "lucide-react-native";
 import Store from "@/db/Store";
+import sendMsg from "@/utils/msg";
 import { useRouter } from "expo-router";
+import { Share2, Trash } from "lucide-react-native";
+import React from "react";
+import { FlatList, Share, Text, TouchableOpacity, View } from "react-native";
+import * as Animatable from "react-native-animatable";
 
 interface Transaction {
   amount: number;
