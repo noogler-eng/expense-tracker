@@ -1,7 +1,8 @@
 import { LinearGradient } from "expo-linear-gradient";
-import { usePathname } from "expo-router";
+import { usePathname, useRouter } from "expo-router";
+import { Home } from "lucide-react-native";
 import React, { useEffect, useRef } from "react";
-import { Animated, Text, View } from "react-native";
+import { Animated, Text, TouchableOpacity, View } from "react-native";
 
 interface HeaderProps {
   title?: string;
@@ -104,6 +105,8 @@ export default function Header({
     outputRange: [-400, 400],
   });
 
+  const router = useRouter();
+
   return (
     <View className="bg-[#0B0B0D] py-4 relative overflow-hidden shadow-2xl">
       {/* Background gradient overlay */}
@@ -154,9 +157,17 @@ export default function Header({
         </View>
 
         {/* Right component */}
-        {pathname !== "/onboarding" && rightComponent && ( 
+        {pathname !== "/onboarding" && pathname !== "/setting" && rightComponent && ( 
           <View className="h-10 w-10 rounded-full bg-neutral-900 border border-neutral-800 items-center justify-center"> 
             {rightComponent} 
+          </View>
+        )}
+
+        {pathname !== "/onboarding" && pathname !== "/" && ( 
+          <View className="h-10 w-10 rounded-full bg-neutral-900 border border-neutral-800 items-center justify-center"> 
+            <TouchableOpacity onPress={() => router.replace("/")}>
+              <Home size={24} color="#eee" />
+            </TouchableOpacity> 
           </View>
         )}
       </View>
