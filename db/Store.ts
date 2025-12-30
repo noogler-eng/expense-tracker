@@ -1,34 +1,12 @@
+import AppData from "@/types/app_data";
+import Friend from "@/types/friend";
+import User from "@/types/user";
 import AsyncStorage from "@react-native-async-storage/async-storage";
-
-interface Transaction {
-  amount: number;
-  description: string;
-  type: "incoming" | "outgoing" | "split";
-  date: string;
-}
-
-interface Friend {
-  id: string;
-  firstName: string;
-  lastName: string;
-  balance: number;
-  history: Transaction[];
-}
-
-interface AppData {
-  firstName: string;
-  lastName: string;
-  dateOfBirth?: string;
-  gender?: string;
-  income?: string;
-  totalIncoming: number;
-  totalOutgoing: number;
-  friends: Friend[];
-}
 
 export default class Store {
   private static STORAGE_KEY = "expense_tracker_data";
 
+  // remove all data from local storage
   static async clearCache() {
     try {
       await AsyncStorage.removeItem(Store.STORAGE_KEY);
@@ -38,108 +16,134 @@ export default class Store {
     }
   }
 
+  // getting all the data of the application
   private static async getData(): Promise<AppData> {
     try {
       const jsonValue = await AsyncStorage.getItem(Store.STORAGE_KEY);
       return jsonValue
         ? JSON.parse(jsonValue)
         : {
-            firstName: "",
-            lastName: "",
-            dateOfBirth: undefined,
-            gender: undefined,
-            income: undefined,
+            user: {
+              firstName: "",
+              lastName: "",
+              dateOfBirth: undefined,
+              gender: undefined,
+              income: undefined,
+            },
             totalIncoming: 0,
             totalOutgoing: 0,
             friends: [],
           };
     } catch (error) {
-      console.error("Error reading data:", error);
+      console.error("Error reading in get app-data:", error);
       throw error;
     }
   }
 
+  // saving all the data of the application
   private static async saveData(data: AppData) {
     try {
-      await AsyncStorage.setItem(Store.STORAGE_KEY, JSON.stringify(data));
+      const app_data = data;
+      await AsyncStorage.setItem(Store.STORAGE_KEY, JSON.stringify(app_data));
     } catch (error) {
-      console.error("Error saving data:", error);
+      console.error("Error saving app-data:", error);
       throw error;
     }
   }
 
+  // initialize the store with app data
   static async initialize(firstName: string, lastName: string) {
     try {
-      await AsyncStorage.setItem(
-        Store.STORAGE_KEY,
-        JSON.stringify({
+      const app_data: AppData = {
+        user: {
           firstName,
           lastName,
-          totalIncoming: 0,
-          totalOutgoing: 0,
-          friends: [],
-        })
+          dateOfBirth: undefined,
+          gender: undefined,
+          income: undefined,
+        },
+        totalIncoming: 0,
+        totalOutgoing: 0,
+        friends: [],
+      }
+
+      await AsyncStorage.setItem(
+        Store.STORAGE_KEY,
+        JSON.stringify(app_data)
       );
-      console.log("Store initialized with user data.");
+
     } catch (error) {
-      console.error("Error initializing store:", error);
+      console.error("Error initializing-store:", error);
+      throw error;
     }
   }
 
-  // Set current user name
-  static async setCurrentUser({firstName, lastName, dateOfBirth, gender, income}: {firstName: string, lastName: string, dateOfBirth?: string, gender?: string, income?: string}) {
+  // Set current user name and other details
+  static async setCurrentUser({firstName, lastName, dateOfBirth, gender, income}: {firstName: string, lastName: string, dateOfBirth?: string, gender?: string, income?: number}) {
     try {
-      const data = await Store.getData();
-      data.firstName = firstName;
-      data.lastName = lastName;
-      if (dateOfBirth !== undefined) data.dateOfBirth = dateOfBirth;
-      if (gender !== undefined) data.gender = gender;
-      if (income !== undefined) data.income = income;
-      await Store.saveData(data);
+      const data: AppData = await Store.getData();
+      const newAppData = {
+        user: {
+          firstName: data.user.firstName,
+          lastName: data.user.lastName,
+          dateOfBirth: data.user.dateOfBirth,
+          gender: data.user.gender,
+          income: data.user.income
+        },
+        totalIncoming: data.totalIncoming,
+        totalOutgoing: data.totalOutgoing,
+        friends: data.friends
+      }
+
+      if (firstName !== undefined) newAppData.user.firstName = firstName;
+      if (lastName !== undefined) newAppData.user.lastName = lastName;
+      if (dateOfBirth !== undefined) newAppData.user.dateOfBirth = dateOfBirth;
+      if (gender !== undefined) newAppData.user.gender = gender;
+      if (income !== undefined) newAppData.user.income = income;
+      await Store.saveData(newAppData);
     } catch (error) {
-      console.error("Error saving current user:", error);
+      console.error("Error saving current-user-app-data:", error);
     }
   }
 
   // Get current user
-  static async getCurrentUser(): Promise<{
-    firstName: string;
-    lastName: string;
-    income: number;
-    incoming: any;
-    outgoing: any;
-    friends: any;
-  }> {
-    const data = await Store.getData();
+  static async getCurrentUser(): Promise<User> {
+    const data: AppData = await Store.getData();
+
     return {
-      firstName: data.firstName,
-      lastName: data.lastName,
-      income: data.income ? Number(data.income) : 0,
-      incoming: data.totalIncoming,
-      outgoing: data.totalOutgoing,
-      friends: data.friends,
+      firstName: data.user.firstName,
+      lastName: data.user.lastName,
+      income: data.user.income ? Number(data.user.income) : 0,
+      gender: data.user.gender,
+      dateOfBirth: data.user.dateOfBirth,
+      history: data.user.history,
     };
   }
 
-  // Add a friend
+  // Add a friend into the local cache
   static async addFriend(firstName: string, lastName: string) {
-    const data = await Store.getData();
-    data.friends.push({
+    const data: AppData = await Store.getData();
+    const friend: Friend = {
       id: Date.now().toString(),
       firstName,
       lastName,
       balance: 0,
       history: [],
-    });
+    }
+    data.friends.push(friend);
     await Store.saveData(data);
   }
 
-  // remove a friend
+  // remove a friend from the local cache
   static async removeFriend(friendId: string) {
     const data = await Store.getData();
     data.friends = data.friends.filter((f) => f.id !== friendId);
     await Store.saveData(data);
   }
+
+
+
+
 
   // Add money with history
   static async addMoneyToFriend(
