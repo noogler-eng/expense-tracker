@@ -1,4 +1,5 @@
 import Store from "@/db/Store";
+import User from "@/types/user";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
@@ -12,14 +13,6 @@ import {
   View
 } from "react-native";
 import Svg, { Circle, Path, Rect } from "react-native-svg";
-
-interface User {
-  firstName?: string;
-  lastName?: string;
-  dateOfBirth?: string;
-  gender?: string;
-  income?: string;
-}
 
 // SVG Icons
 const UserIcon = () => (
@@ -91,11 +84,13 @@ const ChevronIcon = () => (
 
 export default function Setting() {
   // User info
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [dateOfBirth, setDateOfBirth] = useState("");
-  const [gender, setGender] = useState("");
-  const [income, setIncome] = useState("");
+  const [settingData, setSettingData] = useState({
+    firstName: "",
+    lastName: "",
+    dateOfBirth: "",
+    gender: "",
+    income: 0,
+  });
 
   // DOB Picker
   const [dobDate, setDobDate] = useState<Date | null>(null);
@@ -109,14 +104,15 @@ export default function Setting() {
   useEffect(() => {
     const loadUser = async () => {
       try {
-        const user: any = await Store.getCurrentUser();
-
-        setFirstName(user.firstName ?? "");
-        setLastName(user.lastName ?? "");
-        setDateOfBirth(user.dateOfBirth ?? "");
-        setGender(user.gender ?? "");
-        setIncome(user.income ?? "");
-
+        const user: User = await Store.getCurrentUser();
+        setSettingData({
+          firstName: user.firstName || "",
+          lastName: user.lastName || "",
+          dateOfBirth: user.dateOfBirth || "",
+          gender: user.gender || "",
+          income: user.income || 0,
+        });
+               
         if (user.dateOfBirth) {
           const parsedDate = new Date(user.dateOfBirth);
           if (!isNaN(parsedDate.getTime())) {
@@ -133,28 +129,20 @@ export default function Setting() {
 
   // Save handler
   const handleSave = async () => {
-    if (!firstName.trim() || !lastName.trim()) return;
+    if (!settingData.firstName.trim() || !settingData.lastName.trim()) return;
 
     setLoading(true);
     try {
-      console.log("saving user data...", {
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        dateOfBirth,
-        gender,
-        income,
-      });
-
       await Store.setCurrentUser({
-        firstName: firstName.trim(),
-        lastName: lastName.trim(),
-        dateOfBirth,
-        gender,
-        income,
+        firstName: settingData.firstName.trim(),
+        lastName: settingData.lastName.trim(),
+        dateOfBirth: settingData.dateOfBirth,
+        gender: settingData.gender,
+        income: settingData.income,
       });
 
     } catch (error) {
-      console.error(error);
+      console.error("error while setting new data", error);
     } finally {
       setLoading(false);
     }
@@ -167,7 +155,7 @@ export default function Setting() {
       await Store.clearCache();
       router.replace("/onboarding");
     } catch (error) {
-      console.error(error);
+      console.error("error while clearing cache", error);
     } finally {
       setLoading(false);
     }
@@ -206,8 +194,8 @@ export default function Setting() {
                   <UserIcon />
                 </View>
                 <TextInput
-                  value={firstName}
-                  onChangeText={setFirstName}
+                  value={settingData.firstName}
+                  onChangeText={(text) => setSettingData({ ...settingData, firstName: text })}
                   placeholder="Enter your first name"
                   placeholderTextColor="#6B7280"
                   autoCapitalize="words"
@@ -226,8 +214,8 @@ export default function Setting() {
                   <UserIcon />
                 </View>
                 <TextInput
-                  value={lastName}
-                  onChangeText={setLastName}
+                  value={settingData.lastName}
+                  onChangeText={(text) => setSettingData({ ...settingData, lastName: text })}
                   placeholder="Enter your last name"
                   placeholderTextColor="#6B7280"
                   autoCapitalize="words"
@@ -262,10 +250,10 @@ export default function Setting() {
                 <View className="bg-[#0F0F12] pl-14 pr-5 py-4 rounded-2xl border border-neutral-800 flex-row items-center justify-between">
                   <Text
                     className={`text-base ${
-                      dateOfBirth ? "text-white" : "text-neutral-500"
+                      settingData.dateOfBirth ? "text-white" : "text-neutral-500"
                     }`}
                   >
-                    {dateOfBirth || "Select date of birth"}
+                    {settingData.dateOfBirth || "Select date of birth"}
                   </Text>
                   <ChevronIcon />
                 </View>
@@ -283,7 +271,7 @@ export default function Setting() {
                   setShowDatePicker(false);
                   if (selectedDate) {
                     setDobDate(selectedDate);
-                    setDateOfBirth(selectedDate.toISOString().split("T")[0]);
+                    setSettingData({ ...settingData, dateOfBirth: selectedDate.toISOString().split("T")[0] });
                   }
                 }}
               />
@@ -301,7 +289,7 @@ export default function Setting() {
                     <TouchableOpacity
                       key={option}
                       activeOpacity={0.7}
-                      onPress={() => setGender(option)}
+                      onPress={() => setSettingData({ ...settingData, gender: option })}
                       className={`pl-14 pr-5 py-4 flex-row items-center justify-between ${
                         index < genderOptions.length - 1
                           ? "border-b border-neutral-800"
@@ -310,12 +298,12 @@ export default function Setting() {
                     >
                       <Text
                         className={`text-base ${
-                          gender === option ? "text-white font-medium" : "text-neutral-400"
+                          settingData.gender === option ? "text-white font-medium" : "text-neutral-400"
                         }`}
                       >
                         {option}
                       </Text>
-                      {gender === option && (
+                      {settingData.gender === option && (
                         <View className="w-5 h-5 rounded-full bg-indigo-500 items-center justify-center">
                           <View className="w-2 h-2 rounded-full bg-white" />
                         </View>
@@ -346,8 +334,8 @@ export default function Setting() {
                   <MoneyIcon />
                 </View>
                 <TextInput
-                  value={income}
-                  onChangeText={setIncome}
+                  value={String(settingData.income)}
+                  onChangeText={(text) => setSettingData({ ...settingData, income: Number(text) })}
                   placeholder="Enter your monthly income"
                   placeholderTextColor="#6B7280"
                   keyboardType="numeric"

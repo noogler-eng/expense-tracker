@@ -1,4 +1,5 @@
 import Store from "@/db/Store";
+import Friend from "@/types/friend";
 import { Trash } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { FlatList, Text, View } from "react-native";
@@ -9,13 +10,13 @@ export default function FriendList(props: {
   refreshKey?: number;
   setRefreshKey?: any;
 }) {
-  const [friends, setFriends] = useState<any[]>([]);
+  const [friends, setFriends] = useState<Friend[]>([]);
 
   useEffect(() => {
     const fetchFriends = async () => {
       try {
-        const userData = await Store.getCurrentUser();
-        setFriends(userData?.friends || []);
+        const friendsData = await Store.getFriends();
+        setFriends(friendsData || []);
       } catch (error) {
         console.error("Error loading friends:", error);
       }
@@ -40,6 +41,8 @@ export default function FriendList(props: {
       </View>
     );
   }
+
+  console.log("Friends List Rendered:", friends);
 
   return (
     <FlatList
@@ -88,7 +91,7 @@ export default function FriendList(props: {
                 >
                   {Number(item.balance) === 0
                     ? "₹0.00"
-                    : item.balance > 0
+                    : Number(item.balance) > 0
                     ? `₹${Number(item.balance).toFixed(2)}`
                     : `-₹${Math.abs(Number(item.balance)).toFixed(2)}`}
                 </Text>

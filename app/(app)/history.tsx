@@ -1,5 +1,6 @@
 import HistoryList from "@/components/HistoryList";
 import Store from "@/db/Store";
+import Friend from "@/types/friend";
 import React, { useEffect, useState } from "react";
 import {
   ActivityIndicator,
@@ -8,21 +9,6 @@ import {
   TouchableOpacity,
   View,
 } from "react-native";
-
-interface Transaction {
-  amount: number;
-  description: string;
-  type: "incoming" | "outgoing" | "split";
-  date: string;
-}
-
-interface Friend {
-  id: string;
-  firstName: string;
-  lastName: string;
-  balance: number;
-  history: Transaction[];
-}
 
 export default function History() {
   const [friends, setFriends] = useState<Friend[]>([]);
@@ -33,8 +19,8 @@ export default function History() {
     const fetchData = async () => {
       setLoading(true);
       try {
-        const userData = await Store.getCurrentUser();
-        setFriends(userData?.friends || []);
+        const friendsData = await Store.getFriends();
+        setFriends(friendsData || []);
       } catch (error) {
         console.error("Error loading data:", error);
       } finally {
@@ -137,18 +123,18 @@ export default function History() {
               {/* Balance */}
               <Text
                 className={`text-sm font-semibold ${
-                  item.balance === 0
+                  Number(item.balance) === 0
                     ? "text-white"
-                    : item.balance > 0
+                    : Number(item.balance) > 0
                     ? "text-green-400"
                     : "text-red-400"
                 }`}
               >
-                {balance === 0
+                {Number(item.balance) === 0
                   ? "₹0.00"
-                  : balance > 0
-                  ? `-₹${balance.toFixed(2)}`
-                  : `+₹${Math.abs(balance).toFixed(2)}`}
+                  : Number(item.balance) > 0
+                  ? `₹${item.balance.toFixed(2)}`
+                  : `-₹${Math.abs(item.balance).toFixed(2)}`}
               </Text>
             </TouchableOpacity>
           );

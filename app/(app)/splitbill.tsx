@@ -1,4 +1,5 @@
 import Store from "@/db/Store";
+import Friend from "@/types/friend";
 import React, { useEffect, useState } from "react";
 import {
   FlatList,
@@ -21,8 +22,8 @@ export default function SplitBill() {
   }, []);
 
   const loadFriends = async () => {
-    const userData = await Store.getCurrentUser();
-    setFriends(userData?.friends || []);
+    const friendsResp: Friend[] = await Store.getFriends();
+    setFriends(friendsResp || []);
   };
 
   const toggleFriendSelection = (id: string) => {
@@ -42,18 +43,21 @@ export default function SplitBill() {
     }
 
     try {
-      await Store.splitAmount(
-        Array.from(selectedFriends),
-        Number(amount),
-        description || "No description",
-        type
-      );
+      const splitTxnDetails = {
+        friendIds: Array.from(selectedFriends),
+        totalAmount: Number(amount) / selectedFriends.size,
+        description: description || "No description",
+        category: "food" as const,
+        type,
+      }
+      await Store.splitAmount(splitTxnDetails);
+      
       setAmount("");
       setDescription("");
       setSelectedFriends(new Set());
       loadFriends();
-    } catch {
-      console.error("Error splitting amount");
+    } catch (error) {
+      console.error("Error splitting amount:", error);
     }
   };
 

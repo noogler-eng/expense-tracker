@@ -1,5 +1,6 @@
 import AppData from "@/types/app_data";
 import Friend from "@/types/friend";
+import Transaction from "@/types/transaction";
 import User from "@/types/user";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -109,6 +110,7 @@ export default class Store {
   // Get current user
   static async getCurrentUser(): Promise<User> {
     const data: AppData = await Store.getData();
+    console.log("Fetching current user from Store", data);
 
     return {
       firstName: data.user.firstName,
@@ -118,6 +120,11 @@ export default class Store {
       dateOfBirth: data.user.dateOfBirth,
       history: data.user.history,
     };
+  }
+
+  static async getFriends(): Promise<Friend[]> {
+    const data: AppData = await Store.getData();
+    return data.friends;
   }
 
   // Add a friend into the local cache
@@ -142,90 +149,94 @@ export default class Store {
   }
 
 
-
-
-
   // Add money with history
   static async addMoneyToFriend(
     friendId: string,
     amount: number,
     description: string,
+    category: "food" | "transport" | "entertainment" | "utilities" | "others",
     type: "incoming" | "outgoing"
   ) {
-    const data = await Store.getData();
-    const friend = data.friends.find((f) => f.id === friendId);
+    const appData = await Store.getData();
+    const friend = appData.friends.find((f) => f.id === friendId);
     if (!friend) return;
 
     if (type === "incoming") {
-      data.totalIncoming += amount;
+      appData.totalIncoming += amount;
       friend.balance += amount;
     } else {
-      data.totalOutgoing += amount;
+      appData.totalOutgoing += amount;
       friend.balance -= amount;
     }
 
-    friend.history.push({
+    const txn: Transaction = {
       amount,
       description,
       type,
+      category,
       date: new Date().toISOString(),
-    });
-
-    await Store.saveData(data);
+    }
+    friend.history.push(txn);
+    await Store.saveData(appData);
   }
 
   // Get friend history
   static async getFriendHistory(friendId: string): Promise<Transaction[]> {
-    const data = await Store.getData();
-    const friend = data.friends.find((f) => f.id === friendId);
+    const appData = await Store.getData();
+    const friend = appData.friends.find((f) => f.id === friendId);
     return friend ? friend.history : [];
   }
 
   // clear friend history
   static async clearFriendHistory(friendId: string) {
-    const data = await Store.getData();
-    const friend = data.friends.find((f) => f.id === friendId);
+    const appData = await Store.getData();
+    const friend = appData.friends.find((f) => f.id === friendId);
     if (friend) {
       friend.history = [];
       friend.balance = 0;
-      await Store.saveData(data);
+      await Store.saveData(appData);
     }
   }
 
-  static async splitAmount(
+  static async splitAmount({
+    friendIds, totalAmount, description, category, type
+  }: {
     friendIds: string[],
     totalAmount: number,
     description: string,
+    category: "food" | "transport" | "entertainment" | "utilities" | "others",
     type: "incoming" | "outgoing"
-  ) {
+  }) {
     try {
-      const data = await Store.getData();
+      const appData = await Store.getData();
       if (!friendIds.length) return;
 
       const splitValue = totalAmount / friendIds.length;
 
-      console.log(type)
       friendIds.forEach((friendId) => {
-        const friend = data.friends.find((f: any) => f.id === friendId);
+        const friend = appData.friends.find((f: any) => f.id === friendId);
         if (friend) {
           if (type === "incoming") {
             friend.balance += splitValue;
-            data.totalIncoming += splitValue;
+            appData.totalIncoming += splitValue;
           } else if (type === "outgoing") {
             friend.balance -= splitValue;
-            data.totalOutgoing += splitValue;
+            appData.totalOutgoing += splitValue;
           }
 
-          friend.history.push({
-            type: type,
+          const txn: Transaction = {
             amount: splitValue,
             description,
+            type,
+            category,
             date: new Date().toISOString(),
-          });
+          };
+
+          friend.history.push(txn);
         }
       });
 
-      await Store.saveData(data);
+      await Store.saveData(appData);
     } catch (error) {
       console.error("Error splitting amount:", error);
     }
@@ -242,22 +253,21 @@ export default class Store {
     } = {}
   ) {
     try {
-      const data = await Store.getData();
+      const appData = await Store.getData();
 
-      const friendIndex = data.friends.findIndex((f: any) => f.id === friendId);
+      const friendIndex = appData.friends.findIndex((f: any) => f.id === friendId);
       if (friendIndex === -1) {
         console.error(`Friend with ID ${friendId} not found`);
         return;
       }
 
       // Merge the updates into the existing friend object
-      data.friends[friendIndex] = {
-        ...data.friends[friendIndex],
+      appData.friends[friendIndex] = {
+        ...appData.friends[friendIndex],
         ...updates,
       };
 
-      await Store.saveData(data);
-      console.log(`Friend ${friendId} updated successfully.`);
+      await Store.saveData(appData);
     } catch (error) {
       console.error("Error updating friend data:", error);
     }

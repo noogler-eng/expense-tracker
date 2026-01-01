@@ -1,4 +1,5 @@
 import Store from "@/db/Store";
+import User from "@/types/user";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { ActivityIndicator, Text, View } from "react-native";
@@ -7,37 +8,27 @@ import * as Animatable from "react-native-animatable";
 export default function Index() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<{
-    firstName: string;
-    lastName: string;
-    incoming: number;
-    outgoing: number;
-    friends: any[];
-    netBalance: number;
-    expectedIncome: number;
-  } | null>(null);
+  const [user, setUser] = useState<any>(null);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const data = await Store.getCurrentUser();
-        if (!data.firstName || !data.lastName) {
+        const data: User = await Store.getCurrentUser();
+        if (!data || !data.firstName || !data.lastName) {
           router.push("/onboarding");
           return;
         }
 
-        console.log("User data loaded:", data);
-
         let netBalance = 0;
         let expectedIncome = 0;
 
-        data.friends.forEach((friend: any) => {
-          const bal = Number(friend.balance || 0);
+        data?.history?.forEach((txn: any) => {
+          const bal = Number(txn.amount || 0);
           netBalance += bal;
           expectedIncome += bal;
         });
 
-        expectedIncome += data.income;
+        expectedIncome += data.income ?? 0;
 
         setUser({
           ...data,
@@ -54,7 +45,6 @@ export default function Index() {
     fetchData();
   }, []);
 
-  /* ---------------- Loading ---------------- */
   if (loading) {
     return (
       <View className="flex-1 items-center justify-center bg-[#0B0B0D]">

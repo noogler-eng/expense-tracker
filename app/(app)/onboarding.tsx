@@ -1,4 +1,5 @@
 import Store from "@/db/Store";
+import User from "@/types/user";
 import { LinearGradient } from "expo-linear-gradient";
 import { usePathname, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -22,19 +23,19 @@ export default function Onboarding() {
 
   const handleStart = async () => {
     if (!firstName.trim() || !lastName.trim()) return;
-    
     setLoading(true);
+
     try {
       await Store.setCurrentUser({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         dateOfBirth: "",
         gender: "",
-        income: "",
+        income: 0,
       });
       router.replace("/");
     } catch (error) {
-      console.error("Failed to save user", error);
+      console.error("Failed to save user on onboarding page: ", error);
     } finally {
       setLoading(false);
     }
@@ -42,7 +43,7 @@ export default function Onboarding() {
 
   useEffect(() => {
     const checkUser = async () => {
-      const data = await Store.getCurrentUser();
+      const data: User = await Store.getCurrentUser();
       if (data.firstName && data.lastName) {
         router.replace("/");
       }
