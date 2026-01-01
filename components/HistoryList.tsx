@@ -1,17 +1,11 @@
 import Store from "@/db/Store";
+import Transaction from "@/types/transaction";
 import sendMsg from "@/utils/msg";
 import { useRouter } from "expo-router";
 import { Share2, Trash } from "lucide-react-native";
 import React from "react";
 import { FlatList, Share, Text, TouchableOpacity, View } from "react-native";
 import * as Animatable from "react-native-animatable";
-
-interface Transaction {
-  amount: number;
-  description?: string;
-  type: "incoming" | "outgoing" | "split";
-  date: string;
-}
 
 interface HistoryListProps {
   transactions: Transaction[];
@@ -110,7 +104,7 @@ export default function HistoryList({
                       {item.description || "No description"}
                     </Text>
                     <Text className={`${amountColor} font-semibold mb-2`}>
-                      {item.type === "outgoing" ? "-" : "+"}₹
+                      {item.type === "outgoing" ? "-" : ""}₹
                       {Number(item.amount).toFixed(2)}
                     </Text>
                   </View>
