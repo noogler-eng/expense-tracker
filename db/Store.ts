@@ -18,7 +18,7 @@ export default class Store {
   }
 
   // getting all the data of the application
-  private static async getData(): Promise<AppData> {
+  public static async getData(): Promise<AppData> {
     try {
       const jsonValue = await AsyncStorage.getItem(Store.STORAGE_KEY);
       return jsonValue
@@ -42,7 +42,7 @@ export default class Store {
   }
 
   // saving all the data of the application
-  private static async saveData(data: AppData) {
+  public static async saveData(data: AppData) {
     try {
       const app_data = data;
       await AsyncStorage.setItem(Store.STORAGE_KEY, JSON.stringify(app_data));
@@ -53,12 +53,15 @@ export default class Store {
   }
 
   // initialize the store with app data
-  static async initialize(firstName: string, lastName: string) {
+  static async initialize(payload: {
+    firstName: string;
+    lastName: string;
+  }) {
     try {
       const app_data: AppData = {
         user: {
-          firstName,
-          lastName,
+          firstName: payload.firstName,
+          lastName: payload.lastName,
           dateOfBirth: undefined,
           gender: undefined,
           income: undefined,
@@ -136,12 +139,15 @@ export default class Store {
   }
 
   // Add a friend into the local cache
-  static async addFriend(firstName: string, lastName: string) {
+  static async addFriend(payload: {
+    firstName: string;
+    lastName: string;
+  }) {
     const data: AppData = await Store.getData();
     const friend: Friend = {
       id: Date.now().toString(),
-      firstName,
-      lastName,
+      firstName: payload.firstName,
+      lastName: payload.lastName,
       balance: 0,
       history: [],
     }
@@ -150,9 +156,9 @@ export default class Store {
   }
 
   // remove a friend from the local cache
-  static async removeFriend(friendId: string) {
+  static async removeFriend(payload: {id: string}) {
     const data = await Store.getData();
-    data.friends = data.friends.filter((f) => f.id !== friendId);
+    data.friends = data.friends.filter((f) => f.id !== payload.id);
     await Store.saveData(data);
   }
 
@@ -190,16 +196,20 @@ export default class Store {
   }
 
   // Get friend history
-  static async getFriendHistory(friendId: string): Promise<Transaction[]> {
+  static async getFriendHistory(payload: {
+    id: string;
+  }): Promise<Transaction[]> {
     const appData = await Store.getData();
-    const friend = appData.friends.find((f) => f.id === friendId);
+    const friend = appData.friends.find((f) => f.id === payload.id);
     return friend ? friend.history : [];
   }
 
   // clear friend history
-  static async clearFriendHistory(friendId: string) {
+  static async clearFriendHistory(payload: {
+    id: string;
+  }) {
     const appData = await Store.getData();
-    const friend = appData.friends.find((f) => f.id === friendId);
+    const friend = appData.friends.find((f) => f.id === payload.id);
     if (friend) {
       friend.history = [];
       friend.balance = 0;
@@ -252,28 +262,23 @@ export default class Store {
   }
 
   // updating any friend data
-  static async updateFriendData(
-    friendId: string,
-    updates: {
-      firstName?: string;
-      lastName?: string;
-      balance?: number;
-      history?: Transaction[];
-    } = {}
-  ) {
+  static async updateFriendData(payload: {
+    id: string;
+    updates: Partial<Friend>;
+  }) {
     try {
       const appData = await Store.getData();
 
-      const friendIndex = appData.friends.findIndex((f: any) => f.id === friendId);
+      const friendIndex = appData.friends.findIndex((f: any) => f.id === payload.id);
       if (friendIndex === -1) {
-        console.error(`Friend with ID ${friendId} not found`);
+        console.error(`Friend with ID ${payload.id} not found`);
         return;
       }
 
       // Merge the updates into the existing friend object
       appData.friends[friendIndex] = {
         ...appData.friends[friendIndex],
-        ...updates,
+        ...payload,
       };
 
       await Store.saveData(appData);

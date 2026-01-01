@@ -1,9 +1,10 @@
+import Loading from "@/components/Loading";
 import Store from "@/db/Store";
 import Friend from "@/types/friend";
 import User from "@/types/user";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { ActivityIndicator, Text, View } from "react-native";
+import { Text, View } from "react-native";
 import * as Animatable from "react-native-animatable";
 
 export default function Index() {
@@ -13,6 +14,8 @@ export default function Index() {
   const [appData, setAppData] = useState<any>(null);
 
   useEffect(() => {
+    setLoading(true);
+
     const fetchData = async () => {
       try {
         const data: User = await Store.getCurrentUser();
@@ -49,22 +52,26 @@ export default function Index() {
       }
     };
 
-    fetchData();
+    // fetchData();
   }, []);
 
-  if (loading) {
-    return (
-      <View className="flex-1 items-center justify-center bg-[#0B0B0D]">
-        <Animatable.Text
-          animation="fadeInDown"
-          duration={700}
-          className="text-4xl font-bold text-white tracking-wide"
-        >
-          Resolve
-        </Animatable.Text>
-        <ActivityIndicator size="large" color="#A3A3A3" className="mt-6" />
-      </View>
-    );
+  // if (loading) {
+  //   return (
+  //     <View className="flex-1 items-center justify-center bg-[#0B0B0D]">
+  //       <Animatable.Text
+  //         animation="fadeInDown"
+  //         duration={700}
+  //         className="text-4xl font-bold text-white tracking-wide"
+  //       >
+  //         Resolve
+  //       </Animatable.Text>
+  //       <ActivityIndicator size="large" color="#A3A3A3" className="mt-6" />
+  //     </View>
+  //   );
+  // }
+
+  if(loading){
+    return <Loading/>
   }
 
   return (
