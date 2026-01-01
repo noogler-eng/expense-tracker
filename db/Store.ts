@@ -122,6 +122,14 @@ export default class Store {
     };
   }
 
+  static async getExtra(): Promise<{totalIncoming: number, totalOutgoing: number}> {
+    const data: AppData = await Store.getData();
+    return {
+      totalIncoming: data.totalIncoming,
+      totalOutgoing: data.totalOutgoing,
+    };
+  }
+
   static async getFriends(): Promise<Friend[]> {
     const data: AppData = await Store.getData();
     return data.friends;
@@ -150,13 +158,14 @@ export default class Store {
 
 
   // Add money with history
-  static async addMoneyToFriend(
+  static async addMoneyToFriend({friendId, amount, description, category, type}: {
     friendId: string,
     amount: number,
     description: string,
     category: "food" | "transport" | "entertainment" | "utilities" | "others",
     type: "incoming" | "outgoing"
-  ) {
+  }) {
+
     const appData = await Store.getData();
     const friend = appData.friends.find((f) => f.id === friendId);
     if (!friend) return;

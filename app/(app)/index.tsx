@@ -1,4 +1,5 @@
 import Store from "@/db/Store";
+import Friend from "@/types/friend";
 import User from "@/types/user";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
@@ -9,6 +10,7 @@ export default function Index() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<any>(null);
+  const [appData, setAppData] = useState<any>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -19,11 +21,16 @@ export default function Index() {
           return;
         }
 
+        const extra = await Store.getExtra();
+        setAppData(extra);
+
         let netBalance = 0;
         let expectedIncome = 0;
 
-        data?.history?.forEach((txn: any) => {
-          const bal = Number(txn.amount || 0);
+        // history of my friends not mine
+        const friendsData: Friend[] = await Store.getFriends();
+        friendsData?.forEach((friend: Friend) => {
+          const bal = Number(friend.balance || 0);
           netBalance += bal;
           expectedIncome += bal;
         });
@@ -98,8 +105,8 @@ export default function Index() {
               {user!.netBalance === 0
                 ? "₹0.00"
                 : user!.netBalance > 0
-                ? `+₹${user!.netBalance.toFixed(2)}`
-                : `-₹${Math.abs(user!.netBalance).toFixed(2)}`}
+                ? `₹${user!.netBalance.toFixed(2)}`
+                : `₹${Math.abs(user!.netBalance).toFixed(2)}`}
             </Text>
             <Text className="text-neutral-500 text-xs mt-2">
               Overall position based on all friends
@@ -111,8 +118,20 @@ export default function Index() {
             <Text className="text-neutral-500 text-sm">
               Expected Income (Future Now)
             </Text>
-            <Text className="text-green-400 text-2xl font-semibold mt-1">
-              ₹{user!.expectedIncome.toFixed(2)}
+            <Text
+              className={`text-4xl font-bold mt-2 ${
+                user!.netBalance === 0
+                  ? "text-white"
+                  : user!.expectedIncome > 0
+                  ? "text-green-400"
+                  : "text-red-400"
+              }`}
+            >
+              {user!.expectedIncome === 0
+                ? "₹0.00"
+                : user!.expectedIncome > 0
+                ? `₹${user!.expectedIncome.toFixed(2)}`
+                : `₹${Math.abs(user!.expectedIncome).toFixed(2)}`}
             </Text>
             <Text className="text-neutral-500 text-xs mt-1">
               Money you should receive from others
@@ -126,7 +145,7 @@ export default function Index() {
                 Total Incoming
               </Text>
               <Text className="text-green-400 text-xl font-semibold mt-1">
-                ₹{user?.incoming ?? 0}
+                ₹{appData?.totalIncoming ?? 0}
               </Text>
             </View>
 
@@ -135,7 +154,7 @@ export default function Index() {
                 Total Outgoing
               </Text>
               <Text className="text-red-400 text-xl font-semibold mt-1">
-                ₹{user?.outgoing ?? 0}
+                ₹{appData?.totalOutgoing ?? 0}
               </Text>
             </View>
           </View>

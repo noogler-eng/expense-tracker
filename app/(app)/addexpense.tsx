@@ -1,4 +1,5 @@
 import Store from "@/db/Store";
+import Friend from "@/types/friend";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import {
@@ -10,36 +11,34 @@ import {
 } from "react-native";
 
 export default function AddExpense() {
-  const [friends, setFriends] = useState<any[]>([]);
+  const [friends, setFriends] = useState<Friend[]>([]);
   const [selectedFriend, setSelectedFriend] = useState<string | null>(null);
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [type, setType] = useState<"incoming" | "outgoing">("incoming");
-  const router = useRouter();
 
   useEffect(() => {
     const fetchFriends = async () => {
-      const userData = await Store.getCurrentUser();
-      setFriends(userData?.friends || []);
+      const friendsData = await Store.getFriends();
+      setFriends(friendsData || []);
     };
     fetchFriends();
   }, []);
 
   const handleSave = async () => {
-    if (!selectedFriend) {
-      return;
-    }
-    if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
-      return;
-    }
+    if (!selectedFriend) return;
+    if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) return;
 
     try {
-      await Store.addMoneyToFriend(
-        selectedFriend,
-        Number(amount),
-        description || "No description",
-        type
-      );
+      const txn = {
+        friendId: selectedFriend,
+        amount: Number(amount),
+        description: description || "No description",
+        category: "food" as const,
+        type,
+      }
+
+      await Store.addMoneyToFriend(txn);
       setAmount("");
       setDescription("");
       setSelectedFriend(null);
