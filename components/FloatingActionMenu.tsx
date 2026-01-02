@@ -114,7 +114,11 @@ const FloatingActionMenu = (props: {
           {/* Icon */}
           <TouchableOpacity
             // @ts-ignore
-            onPress={() => router.replace(action.link)}
+            onPress={() => {
+              toggleMenu();
+              // @ts-ignore
+              router.replace(action.link)
+            }}
             activeOpacity={0.85}
           >
             <Animated.View
