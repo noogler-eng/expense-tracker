@@ -1,7 +1,7 @@
 import Loading from "@/components/Loading";
 import Store from "@/db/Store";
-import Friend from "@/types/friend";
-import User from "@/types/user";
+import Friend from "@/types/helper/friendType";
+import User from "@/types/helper/userType";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { Text, View } from "react-native";

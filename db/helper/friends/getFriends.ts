@@ -1,5 +1,5 @@
 import Store from "@/db/Store";
-import Friend from "@/types/friend";
+import Friend from "@/types/helper/friendType";
 
 export default async function getFriends() {
     console.log("getFriends fn called");

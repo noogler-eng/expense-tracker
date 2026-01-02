@@ -1,5 +1,5 @@
 import Store from "@/db/Store";
-import User from "@/types/user";
+import User from "@/types/helper/userType";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";

@@ -1,5 +1,5 @@
 import Store from "@/db/Store";
-import Friend from "@/types/friend";
+import Friend from "@/types/helper/friendType";
 import React, { useEffect, useState } from "react";
 import {
   FlatList,

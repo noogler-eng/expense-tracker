@@ -1,5 +1,5 @@
 import Store from "@/db/Store";
-import Transaction from "@/types/transaction";
+import Transaction from "@/types/helper/transactionType";
 
 export default async function updateFriendsData(friendId: string, firstName: string, lastName: string, balance: number, history: Transaction[]) {
     console.log("updateFriendsData fn called");

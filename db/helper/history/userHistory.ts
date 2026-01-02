@@ -1,5 +1,5 @@
 import Store from "@/db/Store";
-import Transaction from "@/types/transaction";
+import Transaction from "@/types/helper/transactionType";
 
 export default async function userHistory() {
     console.log("User history fn");

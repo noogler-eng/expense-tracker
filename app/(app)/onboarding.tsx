@@ -1,5 +1,5 @@
 import Store from "@/db/Store";
-import User from "@/types/user";
+import User from "@/types/helper/userType";
 import { LinearGradient } from "expo-linear-gradient";
 import { usePathname, useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";

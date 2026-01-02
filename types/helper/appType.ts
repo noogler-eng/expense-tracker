@@ -1,5 +1,5 @@
-import Friend from "./friend";
-import User from "./user";
+import Friend from "./friendType";
+import User from "./userType";
 
 interface AppData {
   user: User;

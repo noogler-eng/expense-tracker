@@ -1,4 +1,4 @@
-import Transaction from "./transaction";
+import Transaction from "./transactionType";
 
 interface User {
   firstName: string;

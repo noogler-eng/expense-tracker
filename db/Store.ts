@@ -1,64 +1,81 @@
-import AppData from "@/types/app_data";
-import Friend from "@/types/friend";
-import Transaction from "@/types/transaction";
-import User from "@/types/user";
+import { Category } from "@/types";
+import AppData from "@/types/helper/appType";
+import Friend from "@/types/helper/friendType";
+import Transaction from "@/types/helper/transactionType";
+import Type from "@/types/helper/typeType";
+import User from "@/types/helper/userType";
+import idGen from "@/utils/helper/idGen";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-export default class Store {
-  private static STORAGE_KEY = "expense_tracker_data";
 
-  // remove all data from local storage
+enum TYPE {
+  INCOMING = "incoming",
+  OUTGOING = "outgoing",
+}
+
+export default class Store {
+
+  //   /$$$$$$   /$$                                                             /$$                          
+  //  /$$__  $$ | $$                                                            | $$                          
+  // | $$  \__//$$$$$$    /$$$$$$   /$$$$$$  /$$$$$$   /$$$$$$   /$$$$$$        | $$   /$$  /$$$$$$  /$$   /$$
+  // |  $$$$$$|_  $$_/   /$$__  $$ /$$__  $$|____  $$ /$$__  $$ /$$__  $$       | $$  /$$/ /$$__  $$| $$  | $$
+  //  \____  $$ | $$    | $$  \ $$| $$  \__/ /$$$$$$$| $$  \ $$| $$$$$$$$       | $$$$$$/ | $$$$$$$$| $$  | $$
+  //  /$$  \ $$ | $$ /$$| $$  | $$| $$      /$$__  $$| $$  | $$| $$_____/       | $$_  $$ | $$_____/| $$  | $$
+  // |  $$$$$$/ |  $$$$/|  $$$$$$/| $$     |  $$$$$$$|  $$$$$$$|  $$$$$$$       | $$ \  $$|  $$$$$$$|  $$$$$$$
+  //  \______/   \___/   \______/ |__/      \_______/ \____  $$ \_______//$$$$$$|__/  \__/ \_______/ \____  $$
+  //                                                  /$$  \ $$         |______/                     /$$  | $$
+  //                                                 |  $$$$$$/                                     |  $$$$$$/
+  //                                                  \______/                                       \______/ 
+  private static STORAGE_KEY = process.env.EXPO_PUBLIC_STORAGE_KEY || "";
+
+
+
+
+  
+  //   /$$$$$$                     
+  //  /$$__  $$                    
+  // | $$  \ $$  /$$$$$$   /$$$$$$ 
+  // | $$$$$$$$ /$$__  $$ /$$__  $$
+  // | $$__  $$| $$  \ $$| $$  \ $$
+  // | $$  | $$| $$  | $$| $$  | $$
+  // | $$  | $$| $$$$$$$/| $$$$$$$/
+  // |__/  |__/| $$____/ | $$____/ 
+  //           | $$      | $$      
+  //           | $$      | $$      
+  //           |__/      |__/       
   static async clearCache() {
     try {
       await AsyncStorage.removeItem(Store.STORAGE_KEY);
     } catch (error) {
-      console.error("Error clearing cache:", error);
       throw error;
     }
   }
 
-  // getting all the data of the application
   public static async getData(): Promise<AppData> {
     try {
-      const jsonValue = await AsyncStorage.getItem(Store.STORAGE_KEY);
-      return jsonValue
-        ? JSON.parse(jsonValue)
-        : {
-            user: {
-              firstName: "",
-              lastName: "",
-              dateOfBirth: undefined,
-              gender: undefined,
-              income: undefined,
-            },
-            totalIncoming: 0,
-            totalOutgoing: 0,
-            friends: [],
-          };
+      const appData = JSON.parse(
+        (await AsyncStorage.getItem(Store.STORAGE_KEY)) || ""
+      );
+      return appData;
     } catch (error) {
-      console.error("Error reading in get app-data:", error);
       throw error;
     }
   }
 
-  // saving all the data of the application
-  public static async saveData(data: AppData) {
+  public static async saveData(payload: AppData) {
     try {
-      const app_data = data;
-      await AsyncStorage.setItem(Store.STORAGE_KEY, JSON.stringify(app_data));
+      await AsyncStorage.setItem(Store.STORAGE_KEY, JSON.stringify(payload));
     } catch (error) {
-      console.error("Error saving app-data:", error);
       throw error;
     }
   }
 
-  // initialize the store with app data
-  static async initialize(payload: {
+  public static async initialize(payload: {
     firstName: string;
     lastName: string;
   }) {
     try {
-      const app_data: AppData = {
+      const appData: AppData = {
         user: {
           firstName: payload.firstName,
           lastName: payload.lastName,
@@ -69,114 +86,215 @@ export default class Store {
         totalIncoming: 0,
         totalOutgoing: 0,
         friends: [],
-      }
+      };
 
-      await AsyncStorage.setItem(
-        Store.STORAGE_KEY,
-        JSON.stringify(app_data)
-      );
-
+      await AsyncStorage.setItem(Store.STORAGE_KEY, JSON.stringify(appData));
     } catch (error) {
-      console.error("Error initializing-store:", error);
       throw error;
     }
   }
 
-  // Set current user name and other details
-  static async setCurrentUser({firstName, lastName, dateOfBirth, gender, income}: {firstName: string, lastName: string, dateOfBirth?: string, gender?: string, income?: number}) {
-    try {
-      const data: AppData = await Store.getData();
-      const newAppData = {
-        user: {
-          firstName: data.user.firstName,
-          lastName: data.user.lastName,
-          dateOfBirth: data.user.dateOfBirth,
-          gender: data.user.gender,
-          income: data.user.income
-        },
-        totalIncoming: data.totalIncoming,
-        totalOutgoing: data.totalOutgoing,
-        friends: data.friends
-      }
 
-      if (firstName !== undefined) newAppData.user.firstName = firstName;
-      if (lastName !== undefined) newAppData.user.lastName = lastName;
-      if (dateOfBirth !== undefined) newAppData.user.dateOfBirth = dateOfBirth;
-      if (gender !== undefined) newAppData.user.gender = gender;
-      if (income !== undefined) newAppData.user.income = income;
+
+
+
+
+  //  /$$   /$$                              
+  // | $$  | $$                              
+  // | $$  | $$  /$$$$$$$  /$$$$$$   /$$$$$$ 
+  // | $$  | $$ /$$_____/ /$$__  $$ /$$__  $$
+  // | $$  | $$|  $$$$$$ | $$$$$$$$| $$  \__/
+  // | $$  | $$ \____  $$| $$_____/| $$      
+  // |  $$$$$$/ /$$$$$$$/|  $$$$$$$| $$      
+  //  \______/ |_______/  \_______/|__/  
+  static async setCurrentUser({
+    firstName,
+    lastName,
+    dateOfBirth,
+    gender,
+    income,
+  }: {
+    firstName: string;
+    lastName: string;
+    dateOfBirth?: string;
+    gender?: string;
+    income?: number;
+  }) {
+    try {
+      const appData: AppData = await Store.getData();
+      const newAppData: AppData = {
+        user: {
+          firstName: appData.user.firstName,
+          lastName: appData.user.lastName,
+          dateOfBirth: appData.user.dateOfBirth,
+          gender: appData.user.gender,
+          income: appData.user.income,
+        },
+        totalIncoming: appData.totalIncoming,
+        totalOutgoing: appData.totalOutgoing,
+        friends: appData.friends,
+      };
+
+      if (firstName !== "") newAppData.user.firstName = firstName;
+      if (lastName !== "") newAppData.user.lastName = lastName;
+      if (dateOfBirth !== "") newAppData.user.dateOfBirth = dateOfBirth;
+      if (gender !== "") newAppData.user.gender = gender;
+      if (income !== 0) newAppData.user.income = income;
       await Store.saveData(newAppData);
     } catch (error) {
-      console.error("Error saving current-user-app-data:", error);
+      throw error;
     }
   }
 
-  // Get current user
   static async getCurrentUser(): Promise<User> {
-    const data: AppData = await Store.getData();
-    console.log("Fetching current user from Store", data);
+    const appData: AppData = await Store.getData();
+    return appData.user;
+  }
 
+  static async getUserHistory(): Promise<Transaction[]> {
+    const data: AppData = await Store.getData();
+    return data.user.history || [];
+  }
+
+  static async getUserExtra(): Promise<{
+    totalIncoming: number;
+    totalOutgoing: number;
+  }> {
+    const appData: AppData = await Store.getData();
     return {
-      firstName: data.user.firstName,
-      lastName: data.user.lastName,
-      income: data.user.income ? Number(data.user.income) : 0,
-      gender: data.user.gender,
-      dateOfBirth: data.user.dateOfBirth,
-      history: data.user.history,
+      totalIncoming: appData.totalIncoming,
+      totalOutgoing: appData.totalOutgoing,
     };
   }
 
-  static async getExtra(): Promise<{totalIncoming: number, totalOutgoing: number}> {
-    const data: AppData = await Store.getData();
-    return {
-      totalIncoming: data.totalIncoming,
-      totalOutgoing: data.totalOutgoing,
-    };
-  }
 
+
+
+
+
+  //  /$$$$$$$$        /$$                           /$$          
+  // | $$_____/       |__/                          | $$          
+  // | $$     /$$$$$$  /$$  /$$$$$$  /$$$$$$$   /$$$$$$$  /$$$$$$$
+  // | $$$$$ /$$__  $$| $$ /$$__  $$| $$__  $$ /$$__  $$ /$$_____/
+  // | $$__/| $$  \__/| $$| $$$$$$$$| $$  \ $$| $$  | $$|  $$$$$$ 
+  // | $$   | $$      | $$| $$_____/| $$  | $$| $$  | $$ \____  $$
+  // | $$   | $$      | $$|  $$$$$$$| $$  | $$|  $$$$$$$ /$$$$$$$/
+  // |__/   |__/      |__/ \_______/|__/  |__/ \_______/|_______/ 
   static async getFriends(): Promise<Friend[]> {
-    const data: AppData = await Store.getData();
-    return data.friends;
+    const appData: AppData = await Store.getData();
+    return appData.friends;
   }
 
-  // Add a friend into the local cache
-  static async addFriend(payload: {
-    firstName: string;
-    lastName: string;
-  }) {
-    const data: AppData = await Store.getData();
+  static async addFriend(payload: { firstName: string; lastName: string }) {
+    const appData: AppData = await Store.getData();
     const friend: Friend = {
-      id: Date.now().toString(),
+      id: idGen(),
       firstName: payload.firstName,
       lastName: payload.lastName,
       balance: 0,
       history: [],
-    }
-    data.friends.push(friend);
-    await Store.saveData(data);
+    };
+
+    appData.friends.push(friend);
+    await Store.saveData(appData);
   }
 
-  // remove a friend from the local cache
-  static async removeFriend(payload: {id: string}) {
-    const data = await Store.getData();
-    data.friends = data.friends.filter((f) => f.id !== payload.id);
-    await Store.saveData(data);
-  }
-
-
-  // Add money with history
-  static async addMoneyToFriend({friendId, amount, description, category, type}: {
-    friendId: string,
-    amount: number,
-    description: string,
-    category: "food" | "transport" | "entertainment" | "utilities" | "others",
-    type: "incoming" | "outgoing"
-  }) {
-
+  static async removeFriend(payload: { id: string }) {
     const appData = await Store.getData();
-    const friend = appData.friends.find((f) => f.id === friendId);
+    appData.friends = appData.friends.filter((f) => f.id !== payload.id);
+    await Store.saveData(appData);
+  }
+
+  static async updateFriendData(payload: {
+    id: string;
+    updates: Partial<Friend>;
+  }) {
+    try {
+      const appData = await Store.getData();
+
+      const friendIndex = appData.friends.findIndex(
+        (f: any) => f.id === payload.id
+      );
+      if (friendIndex === -1) {
+        return;
+      }
+
+      // Merge the updates into the existing friend object
+      appData.friends[friendIndex] = {
+        ...appData.friends[friendIndex],
+        ...payload,
+      };
+
+      await Store.saveData(appData);
+    } catch (error) {
+      throw error;
+    }
+  }
+
+
+
+
+
+
+  //  /$$$$$$$$                                                           /$$     /$$                    
+  // |__  $$__/                                                          | $$    |__/                    
+  //    | $$  /$$$$$$  /$$$$$$  /$$$$$$$   /$$$$$$$  /$$$$$$   /$$$$$$$ /$$$$$$   /$$  /$$$$$$  /$$$$$$$ 
+  //    | $$ /$$__  $$|____  $$| $$__  $$ /$$_____/ |____  $$ /$$_____/|_  $$_/  | $$ /$$__  $$| $$__  $$
+  //    | $$| $$  \__/ /$$$$$$$| $$  \ $$|  $$$$$$   /$$$$$$$| $$        | $$    | $$| $$  \ $$| $$  \ $$
+  //    | $$| $$      /$$__  $$| $$  | $$ \____  $$ /$$__  $$| $$        | $$ /$$| $$| $$  | $$| $$  | $$
+  //    | $$| $$     |  $$$$$$$| $$  | $$ /$$$$$$$/|  $$$$$$$|  $$$$$$$  |  $$$$/| $$|  $$$$$$/| $$  | $$
+  //    |__/|__/      \_______/|__/  |__/|_______/  \_______/ \_______/   \___/  |__/ \______/ |__/  |__/                                                                                                                                                                                                                                                                              
+  static async addTransactionToUser({
+    amount,
+    description,
+    category,
+    type,
+  }: {
+    amount: number;
+    description: string;
+    category: Category;
+    type: Type;
+  }){
+    const appData =  await Store.getData();
+
+    if(type === TYPE.INCOMING){
+      appData.totalIncoming += amount;
+    } else {
+      appData.totalOutgoing += amount;
+    }
+
+    const txn: Transaction = {
+      id: idGen(),
+      amount,
+      description,
+      type,
+      category,
+      date: new Date().toISOString(),
+    };
+
+    appData?.user?.history?.push(txn);
+    await Store.saveData(appData);
+  }
+
+
+  static async addMoneyToFriend({
+    id,
+    amount,
+    description,
+    category,
+    type,
+  }: {
+    id: string
+    amount: number;
+    description: string;
+    category: Category
+    type: Type
+  }) {
+    const appData = await Store.getData();
+    const friend = appData.friends.find((f) => f.id === id);
     if (!friend) return;
 
-    if (type === "incoming") {
+    if (type === TYPE.INCOMING) {
       appData.totalIncoming += amount;
       friend.balance += amount;
     } else {
@@ -185,17 +303,18 @@ export default class Store {
     }
 
     const txn: Transaction = {
+      id: idGen(),
       amount,
       description,
       type,
       category,
       date: new Date().toISOString(),
-    }
+    };
+
     friend.history.push(txn);
     await Store.saveData(appData);
   }
 
-  // Get friend history
   static async getFriendHistory(payload: {
     id: string;
   }): Promise<Transaction[]> {
@@ -204,10 +323,7 @@ export default class Store {
     return friend ? friend.history : [];
   }
 
-  // clear friend history
-  static async clearFriendHistory(payload: {
-    id: string;
-  }) {
+  static async clearFriendHistory(payload: { id: string }) {
     const appData = await Store.getData();
     const friend = appData.friends.find((f) => f.id === payload.id);
     if (friend) {
@@ -218,32 +334,37 @@ export default class Store {
   }
 
   static async splitAmount({
-    friendIds, totalAmount, description, category, type
+    ids,
+    totalAmount,
+    description,
+    category,
+    type,
   }: {
-    friendIds: string[],
-    totalAmount: number,
-    description: string,
-    category: "food" | "transport" | "entertainment" | "utilities" | "others",
-    type: "incoming" | "outgoing"
+    ids: string[];
+    totalAmount: number;
+    description: string;
+    category: Category;
+    type: Type;
   }) {
     try {
       const appData = await Store.getData();
-      if (!friendIds.length) return;
+      if (!ids.length) return;
 
-      const splitValue = totalAmount / friendIds.length;
+      const splitValue = totalAmount / ids.length;
 
-      friendIds.forEach((friendId) => {
-        const friend = appData.friends.find((f: any) => f.id === friendId);
+      ids.forEach((id: string) => {
+        const friend = appData.friends.find((f: any) => f.id === id);
         if (friend) {
-          if (type === "incoming") {
+          if (type === TYPE.INCOMING) {
             friend.balance += splitValue;
             appData.totalIncoming += splitValue;
-          } else if (type === "outgoing") {
+          } else if (type === TYPE.OUTGOING) {
             friend.balance -= splitValue;
             appData.totalOutgoing += splitValue;
           }
 
           const txn: Transaction = {
+            id: idGen(),
             amount: splitValue,
             description,
             type,
@@ -257,33 +378,58 @@ export default class Store {
 
       await Store.saveData(appData);
     } catch (error) {
-      console.error("Error splitting amount:", error);
+      throw error;
     }
   }
 
-  // updating any friend data
-  static async updateFriendData(payload: {
+  static async updateAnyTransaction({
+    id,
+    personId,
+    updates,
+  }: {
     id: string;
-    updates: Partial<Friend>;
-  }) {
-    try {
+    personId?: string;
+    updates: Partial<Transaction>;
+  }){
+    try{
       const appData = await Store.getData();
 
-      const friendIndex = appData.friends.findIndex((f: any) => f.id === payload.id);
-      if (friendIndex === -1) {
-        console.error(`Friend with ID ${payload.id} not found`);
+      if(!personId){
+        const userTxn = appData.user.history?.find((t: any) => t.id === id);
+        if(!userTxn) return;
+
+        Object.assign(userTxn, updates);
         return;
       }
 
-      // Merge the updates into the existing friend object
-      appData.friends[friendIndex] = {
-        ...appData.friends[friendIndex],
-        ...payload,
-      };
+      const friend = appData.friends.find((f) => f.id === personId);
+      if(!friend) return;
 
+      const friendTxn = friend.history.find((t: any) => t.id === id);
+      if(!friendTxn) return;
+
+      Object.assign(friendTxn, updates);
       await Store.saveData(appData);
-    } catch (error) {
-      console.error("Error updating friend data:", error);
+    }catch(error){
+      throw error;
     }
   }
+
+
+
+
+
+
+
+  //        /$$                                             /$$                 /$$             /$$             /$$              
+  //       | $$                                            | $$                | $$            | $$            | $$              
+  //   /$$$$$$$  /$$$$$$  /$$  /$$  /$$ /$$$$$$$   /$$$$$$ | $$  /$$$$$$   /$$$$$$$        /$$$$$$$  /$$$$$$  /$$$$$$    /$$$$$$ 
+  //  /$$__  $$ /$$__  $$| $$ | $$ | $$| $$__  $$ |____  $$| $$ /$$__  $$ /$$__  $$       /$$__  $$ |____  $$|_  $$_/   |____  $$
+  // | $$  | $$| $$  \ $$| $$ | $$ | $$| $$  \ $$  /$$$$$$$| $$| $$  \ $$| $$  | $$      | $$  | $$  /$$$$$$$  | $$      /$$$$$$$
+  // | $$  | $$| $$  | $$| $$ | $$ | $$| $$  | $$ /$$__  $$| $$| $$  | $$| $$  | $$      | $$  | $$ /$$__  $$  | $$ /$$ /$$__  $$
+  // |  $$$$$$$|  $$$$$$/|  $$$$$/$$$$/| $$  | $$|  $$$$$$$| $$|  $$$$$$/|  $$$$$$$      |  $$$$$$$|  $$$$$$$  |  $$$$/|  $$$$$$$
+  //  \_______/ \______/  \_____/\___/ |__/  |__/ \_______/|__/ \______/  \_______/       \_______/ \_______/   \___/   \_______/                                                                                                                          
+  static async downloadData():Promise<AppData>{
+    return await Store.getData();
+  }                                                                                                                                                                                                                                                        
 }

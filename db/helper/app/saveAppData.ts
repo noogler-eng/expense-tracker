@@ -1,7 +1,7 @@
 import Store from "@/db/Store";
-import AppData from "@/types/app_data";
-import Friend from "@/types/friend";
-import Transaction from "@/types/transaction";
+import AppData from "@/types/helper/appType";
+import Friend from "@/types/helper/friendType";
+import Transaction from "@/types/helper/transactionType";
 
 export default async function saveAppData(
     user: {

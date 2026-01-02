@@ -1,5 +1,5 @@
 import Store from "@/db/Store";
-import AppData from "@/types/app_data";
+import AppData from "@/types/helper/appType";
 
 export default async function getAppData(){
     console.log("Get App Data fn");

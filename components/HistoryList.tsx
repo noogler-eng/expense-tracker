@@ -1,6 +1,6 @@
 import Store from "@/db/Store";
-import Transaction from "@/types/transaction";
-import sendMsg from "@/utils/msg";
+import Transaction from "@/types/helper/transactionType";
+import sendMsg from "@/utils/helper/msg";
 import { useRouter } from "expo-router";
 import { Share2, Trash } from "lucide-react-native";
 import React from "react";
