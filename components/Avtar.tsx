@@ -29,8 +29,8 @@ export default function Avtar({
         className={`w-10 h-10 rounded-full items-center justify-center ${avatarColor}`}
       >
         <Text className="text-white text-[14px] font-semibold leading-[16px]">
-          {firstName.charAt(0).toUpperCase()}
-          {lastName.charAt(0).toUpperCase()}
+          {firstName?.charAt(0)?.toUpperCase()}
+          {lastName?.charAt(0)?.toUpperCase()}
         </Text>
       </View>
     </View>

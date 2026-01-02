@@ -1,13 +1,14 @@
 import HistoryList from "@/components/HistoryList";
+import LoadingScreen from "@/components/Loading";
 import Store from "@/db/Store";
 import Friend from "@/types/helper/friendType";
+import colors from "@/utils/helper/colors";
 import React, { useEffect, useState } from "react";
 import {
-  ActivityIndicator,
   FlatList,
   Text,
   TouchableOpacity,
-  View,
+  View
 } from "react-native";
 
 export default function History() {
@@ -32,19 +33,13 @@ export default function History() {
   }, []);
 
   if (loading) {
-    return (
-      <View className="flex-1 bg-[#0B0B0D] items-center justify-center">
-        <ActivityIndicator size="large" color="#FFFFFF" />
-      </View>
-    );
+    return <LoadingScreen/>
   }
 
   if (selectedFriend) {
     return (
       <View className="flex-1 bg-[#0B0B0D] px-6 pt-4">
-        <Text className="text-white text-3xl font-bold mb-2">
-          History
-        </Text>
+        <Text className="text-white text-3xl font-bold mb-2">History</Text>
         <Text className="text-neutral-400 text-sm mb-6">
           {selectedFriend.firstName} {selectedFriend.lastName}
         </Text>
@@ -68,10 +63,8 @@ export default function History() {
 
   return (
     <View className="flex-1 bg-[#0B0B0D] px-6 pt-4">
-      <Text className="text-white text-3xl font-bold mb-2">
-        History
-      </Text>
-      <Text className="text-neutral-400 text-sm mb-6">
+      <Text className="text-white text-3xl font-bold mb-2">History</Text>
+      <Text className={`${colors.neutralAmount} text-sm mb-6`}>
         Select a friend to view transactions
       </Text>
 
@@ -80,18 +73,8 @@ export default function History() {
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         renderItem={({ item, index }) => {
-          const colors = [
-            "#7C2D12",
-            "#1E3A8A",
-            "#14532D",
-            "#312E81",
-            "#7F1D1D",
-            "#581C87",
-            "#7C2D12",
-            "#1F2933",
-          ];
-          const avatarColor = colors[index % colors.length];
-          const balance = Number(item.balance);
+          const avtarColors = [colors.avtar1, colors.avtar2, colors.avtar3, colors.avtar4, colors.avtar5, colors.avtar6, colors.avtar7, colors.avtar8];
+          const avatarColor = avtarColors[index % avtarColors.length];
 
           return (
             <TouchableOpacity
@@ -105,7 +88,7 @@ export default function History() {
                   style={{ backgroundColor: avatarColor }}
                   className="w-10 h-10 rounded-full items-center justify-center"
                 >
-                  <Text className="text-white font-semibold text-sm">
+                  <Text className={`${colors.neutralAmount} font-semibold text-sm`}>
                     {item.firstName[0]}
                     {item.lastName[0]}
                   </Text>
@@ -124,17 +107,17 @@ export default function History() {
               <Text
                 className={`text-sm font-semibold ${
                   Number(item.balance) === 0
-                    ? "text-white"
+                    ? colors.neutralAmount
                     : Number(item.balance) > 0
-                    ? "text-green-400"
-                    : "text-red-400"
+                      ? colors.positiveAmount
+                      : colors.negativeAmount
                 }`}
               >
                 {Number(item.balance) === 0
                   ? "₹0.00"
                   : Number(item.balance) > 0
-                  ? `₹${item.balance.toFixed(2)}`
-                  : `-₹${Math.abs(item.balance).toFixed(2)}`}
+                    ? `₹${item.balance.toFixed(2)}`
+                    : `₹${Math.abs(item.balance).toFixed(2)}`}
               </Text>
             </TouchableOpacity>
           );

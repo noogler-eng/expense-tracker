@@ -3,7 +3,7 @@ import ChevronIcon from "@/components/icons/ChevronIcon";
 import GenderIcon from "@/components/icons/GenderIcon";
 import MoneyIcon from "@/components/icons/MoneyIcon";
 import UserIcon from "@/components/icons/UserIcon";
-import Loading from "@/components/Loading";
+import LoadingScreen from "@/components/Loading";
 import clearCache from "@/db/helper/app/clearCache";
 import getCurrentUser from "@/db/helper/user/getCurrentUser";
 import setCurrentUser from "@/db/helper/user/setCurrentUser";
@@ -103,7 +103,7 @@ export default function Setting() {
   const genderOptions = ["Male", "Female", "Non-binary", "Prefer not to say"];
 
   if (loading) {
-    return <Loading />;
+    return <LoadingScreen />;
   }
 
   return (

@@ -1,3 +1,4 @@
+import LoadingScreen from "@/components/Loading";
 import getCurrentUser from "@/db/helper/user/getCurrentUser";
 import setCurrentUser from "@/db/helper/user/setCurrentUser";
 import User from "@/types/helper/userType";
@@ -52,6 +53,10 @@ export default function Onboarding() {
     };
     checkUser();
   }, [pathname]);
+
+  if(loading){
+    return <LoadingScreen/>
+  }
 
   return (
     <KeyboardAvoidingView

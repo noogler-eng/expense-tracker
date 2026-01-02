@@ -18,12 +18,12 @@ export default function FriendList(props: {
     const fetchFriends = async () => {
       try {
         const friendsData = await getFriends();
+        console.log("Friends Data in FriendList:", friendsData);
         setFriends(friendsData || []);
       } catch (error) {
         console.error("Error loading friends:", error);
       }
     };
-
     fetchFriends();
   }, [props.refreshKey]);
 

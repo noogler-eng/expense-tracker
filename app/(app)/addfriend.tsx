@@ -1,5 +1,6 @@
 import FriendList from "@/components/FriendList";
 import Store from "@/db/Store";
+import colors from "@/utils/helper/colors";
 import React, { useState } from "react";
 import { Text, TextInput, TouchableOpacity, View } from "react-native";
 
@@ -13,7 +14,10 @@ export default function AddFriend() {
       return;
     }
     try {
-      await Store.addFriend(firstName.trim(), lastName.trim());
+      await Store.addFriend({
+        firstName: firstName.trim(),
+        lastName: lastName.trim()
+      });
       setFirstName("");
       setLastName("");
       setRefreshKey((prev) => prev + 1);
@@ -32,7 +36,7 @@ export default function AddFriend() {
         value={firstName}
         onChangeText={setFirstName}
         placeholder="John"
-        placeholderTextColor="#6b7280"
+        placeholderTextColor={colors.placeholder}
         className="bg-neutral-900 text-white px-4 py-3 rounded-xl mb-6"
       />
 
@@ -42,7 +46,7 @@ export default function AddFriend() {
         value={lastName}
         onChangeText={setLastName}
         placeholder="Doe"
-        placeholderTextColor="#6b7280"
+        placeholderTextColor={colors.placeholder}
         className="bg-neutral-900 text-white px-4 py-3 rounded-xl mb-10"
       />
 

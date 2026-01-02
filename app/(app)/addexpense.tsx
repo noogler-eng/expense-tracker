@@ -1,5 +1,7 @@
-import Store from "@/db/Store";
+import getFriends from "@/db/helper/friends/getFriends";
+import simpleTransaction from "@/db/helper/txn/simpleTransaction";
 import Friend from "@/types/helper/friendType";
+import colors from "@/utils/helper/colors";
 import React, { useEffect, useState } from "react";
 import {
   FlatList,
@@ -18,7 +20,7 @@ export default function AddExpense() {
 
   useEffect(() => {
     const fetchFriends = async () => {
-      const friendsData = await Store.getFriends();
+      const friendsData = await getFriends();
       setFriends(friendsData || []);
     };
     fetchFriends();
@@ -30,14 +32,14 @@ export default function AddExpense() {
 
     try {
       const txn = {
-        friendId: selectedFriend,
+        id: selectedFriend,
         amount: Number(amount),
         description: description || "No description",
         category: "food" as const,
         type,
       }
 
-      await Store.addMoneyToFriend(txn);
+      await simpleTransaction(txn);
       setAmount("");
       setDescription("");
       setSelectedFriend(null);
@@ -46,16 +48,6 @@ export default function AddExpense() {
     }
   };
 
-  const colors = [
-    "#7C2D12",
-    "#1E3A8A",
-    "#14532D",
-    "#312E81",
-    "#7F1D1D",
-    "#581C87",
-    "#7C2D12",
-    "#1F2933",
-  ];
 
   return (
     <View className="flex-1 bg-[#0B0B0D] px-6 pt-4">
@@ -79,7 +71,8 @@ export default function AddExpense() {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 6 }}
         renderItem={({ item, index }) => {
-          const avatarColor = colors[index % colors.length];
+          const color = [colors.avtar1, colors.avtar2, colors.avtar3, colors.avtar4, colors.avtar5];
+          const avatarColor = color[index % color.length];
           const isSelected = selectedFriend === item.id;
 
           return (
@@ -155,8 +148,8 @@ export default function AddExpense() {
           <Text
             className={`font-semibold ${
               type === "incoming"
-                ? "text-green-400"
-                : "text-neutral-400"
+                ? colors.positiveAmount
+                : colors.neutralAmount
             }`}
           >
             Add

@@ -1,5 +1,7 @@
+import splitTransaction from "@/db/helper/txn/splitTransaction";
 import Store from "@/db/Store";
 import Friend from "@/types/helper/friendType";
+import colors from "@/utils/helper/colors";
 import React, { useEffect, useState } from "react";
 import {
   FlatList,
@@ -35,22 +37,18 @@ export default function SplitBill() {
   };
 
   const handleSplit = async () => {
-    if (selectedFriends.size === 0) {
-      return;
-    }
-    if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) {
-      return;
-    }
+    if (selectedFriends.size === 0) return;
+    if (!amount || isNaN(Number(amount)) || Number(amount) <= 0) return;
 
     try {
       const splitTxnDetails = {
-        friendIds: Array.from(selectedFriends),
+        ids: Array.from(selectedFriends),
         totalAmount: Number(amount) / selectedFriends.size,
         description: description || "No description",
         category: "food" as const,
         type,
       }
-      await Store.splitAmount(splitTxnDetails);
+      await splitTransaction(splitTxnDetails);
       
       setAmount("");
       setDescription("");
@@ -60,17 +58,6 @@ export default function SplitBill() {
       console.error("Error splitting amount:", error);
     }
   };
-
-  const colors = [
-    "#7C2D12",
-    "#1E3A8A",
-    "#14532D",
-    "#312E81",
-    "#7F1D1D",
-    "#581C87",
-    "#7C2D12",
-    "#1F2933",
-  ];
 
   return (
     <View className="flex-1 bg-[#0B0B0D] px-6">
@@ -93,7 +80,8 @@ export default function SplitBill() {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 12 }}
         renderItem={({ item, index }) => {
-          const avatarColor = colors[index % colors.length];
+          const avtarColors = [colors.avtar1, colors.avtar2, colors.avtar3, colors.avtar4, colors.avtar5, colors.avtar6, colors.avtar7, colors.avtar8];
+          const avatarColor = avtarColors[index % avtarColors.length];
           const isSelected = selectedFriends.has(item.id);
           const balance = Number(item.balance);
 
@@ -138,17 +126,17 @@ export default function SplitBill() {
                 <Text
                   className={`text-sm font-semibold ${
                     balance === 0
-                      ? "text-white"
+                      ? colors.neutralAmount
                       : balance > 0
-                      ? "text-green-400"
-                      : "text-red-400"
+                      ? colors.positiveAmount
+                      : colors.negativeAmount
                   }`}
                 >
                   {balance === 0
                     ? "₹0.00"
                     : balance > 0
                     ? `₹${balance.toFixed(2)}`
-                    : `-₹${Math.abs(balance).toFixed(2)}`}
+                    : `₹${Math.abs(balance).toFixed(2)}`}
                 </Text>
               </TouchableOpacity>
             </Animatable.View>

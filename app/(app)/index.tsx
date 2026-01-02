@@ -24,7 +24,6 @@ export default function Index() {
     const fetchData = async () => {
       try {
         const appData: AppData | undefined = await getAppData();
-        console.log("App Data in index.tsx:", appData);
         if (!appData || !appData.user.firstName || !appData.user.lastName) {
           router.push("/onboarding");
           return;
