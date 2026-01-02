@@ -1,9 +1,11 @@
+import EntryPoint from "@/components/EntryPoint";
 import GlowCard from "@/components/GlowCard";
 import Loading from "@/components/Loading";
 import getAppData from "@/db/helper/app/getAppData";
 import { AppData } from "@/types";
 import Friend from "@/types/helper/friendType";
 import colors from "@/utils/helper/colors";
+import getDaysInMonth from "@/utils/helper/days";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
 import { ScrollView, Text, View } from "react-native";
@@ -35,6 +37,8 @@ export default function Index() {
         });
         setHistory(appData.user.history || []);
         setFriendsData(appData.friends || []);
+        console.log("App Data in Index Page:", appData.friends);
+        console.log("isArray:", Array.isArray(friendsData));
 
         let netBalance = 0;
         let expectedIncome = 0;
@@ -62,12 +66,28 @@ export default function Index() {
     fetchData();
   }, []);
 
+  const hasPositiveAlert =
+    Array.isArray(friendsData) &&
+    friendsData.some((friend) => Number(friend.balance) >= 1000);
+
+  const hasNegativeAlert =
+    Array.isArray(friendsData) &&
+    friendsData.some((friend) => Number(friend.balance) <= -1000);
+
+  const days =
+    getDaysInMonth(new Date().getFullYear(), new Date().getMonth() + 1) -
+    new Date().getDate();
+
   if (loading) {
     return <Loading />;
   }
 
   return (
-    <ScrollView className="flex-1 bg-[#0B0B0D] px-6 pt-12">
+    <ScrollView className="flex-1 bg-[#0B0B0D] px-6 pt-6">
+      <View className="items-start mb-6">
+        <EntryPoint />
+      </View>
+
       {/* Welcome */}
       <Animatable.View animation="fadeInDown" duration={700}>
         <Text className="text-neutral-400 text-base">Welcome back 🎃,</Text>
@@ -87,7 +107,9 @@ export default function Index() {
           <View className="bg-[#0F0F12] border border-neutral-800 rounded-3xl p-6">
             {/* Net Balance */}
             <View className="mb-8">
-              <Text className="text-neutral-500 text-sm">Net Balance</Text>
+              <Text className="text-neutral-500 text-sm">
+                Net Balance which will In and Out
+              </Text>
               <Text
                 className={`text-4xl font-bold mt-2 ${
                   user!.netBalance === 0
@@ -157,6 +179,17 @@ export default function Index() {
         </GlowCard>
       </Animatable.View>
 
+      {/* user income notice coming in certain number of times */}
+      <View className="mt-2">
+        {typeof user?.income === "number" && (
+          <View className="bg-[#0F0F12] border border-neutral-800 rounded-2xl p-4 mb-2">
+            <Text className="text-neutral-500 font-semibold">
+              Your expected income is ₹{user.income} coming in {days} days!
+            </Text>
+          </View>
+        )}
+      </View>
+
       {/* User transaction list */}
       {history && history.length > 0 ? (
         <Animatable.View
@@ -183,7 +216,7 @@ export default function Index() {
 
           {/* Transaction list */}
           <View className="bg-[#0F0F12] border border-neutral-800 rounded-2xl overflow-hidden">
-            {(showAll ? history : history.slice(0, 3)).map(
+            {(showAll ? history : [...history].reverse().slice(0, 3)).map(
               (txn: any, index: number) => (
                 <View
                   key={index}
@@ -237,6 +270,25 @@ export default function Index() {
           </Text>
         </Animatable.View>
       )}
+
+      {/* alert card box when friends positive amount is greater then 1000 or less then thousand */}
+      <View className="mt-4">
+        {hasPositiveAlert && (
+          <View className="bg-[#0F0F12] border border-neutral-800 rounded-2xl p-4 mb-2">
+            <Text className="text-neutral-500 font-semibold">
+              You have friends who owe you more than ₹1000!
+            </Text>
+          </View>
+        )}
+
+        {hasNegativeAlert && (
+          <View className="bg-[#0F0F12] border border-neutral-800 rounded-2xl p-4 mb-2">
+            <Text className="text-neutral-500 font-semibold">
+              You owe friends more than ₹1000!
+            </Text>
+          </View>
+        )}
+      </View>
 
       {/* Footer hint */}
       <Animatable.View animation="fadeIn" delay={700} className="mt-10">
