@@ -7,16 +7,14 @@ import User from "@/types/helper/userType";
 import idGen from "@/utils/helper/idGen";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
-
 enum TYPE {
   INCOMING = "incoming",
   OUTGOING = "outgoing",
 }
 
 export default class Store {
-
-  //   /$$$$$$   /$$                                                             /$$                          
-  //  /$$__  $$ | $$                                                            | $$                          
+  //   /$$$$$$   /$$                                                             /$$
+  //  /$$__  $$ | $$                                                            | $$
   // | $$  \__//$$$$$$    /$$$$$$   /$$$$$$  /$$$$$$   /$$$$$$   /$$$$$$        | $$   /$$  /$$$$$$  /$$   /$$
   // |  $$$$$$|_  $$_/   /$$__  $$ /$$__  $$|____  $$ /$$__  $$ /$$__  $$       | $$  /$$/ /$$__  $$| $$  | $$
   //  \____  $$ | $$    | $$  \ $$| $$  \__/ /$$$$$$$| $$  \ $$| $$$$$$$$       | $$$$$$/ | $$$$$$$$| $$  | $$
@@ -25,24 +23,20 @@ export default class Store {
   //  \______/   \___/   \______/ |__/      \_______/ \____  $$ \_______//$$$$$$|__/  \__/ \_______/ \____  $$
   //                                                  /$$  \ $$         |______/                     /$$  | $$
   //                                                 |  $$$$$$/                                     |  $$$$$$/
-  //                                                  \______/                                       \______/ 
+  //                                                  \______/                                       \______/
   private static STORAGE_KEY = process.env.EXPO_PUBLIC_STORAGE_KEY || "";
 
-
-
-
-  
-  //   /$$$$$$                     
-  //  /$$__  $$                    
-  // | $$  \ $$  /$$$$$$   /$$$$$$ 
+  //   /$$$$$$
+  //  /$$__  $$
+  // | $$  \ $$  /$$$$$$   /$$$$$$
   // | $$$$$$$$ /$$__  $$ /$$__  $$
   // | $$__  $$| $$  \ $$| $$  \ $$
   // | $$  | $$| $$  | $$| $$  | $$
   // | $$  | $$| $$$$$$$/| $$$$$$$/
-  // |__/  |__/| $$____/ | $$____/ 
-  //           | $$      | $$      
-  //           | $$      | $$      
-  //           |__/      |__/       
+  // |__/  |__/| $$____/ | $$____/
+  //           | $$      | $$
+  //           | $$      | $$
+  //           |__/      |__/
   static async clearCache() {
     try {
       await AsyncStorage.removeItem(Store.STORAGE_KEY);
@@ -53,9 +47,25 @@ export default class Store {
 
   public static async getData(): Promise<AppData> {
     try {
-      const appData = JSON.parse(
-        (await AsyncStorage.getItem(Store.STORAGE_KEY)) || ""
+      const data = await AsyncStorage.getItem(
+        Store.STORAGE_KEY || "expense_tracker_data"
       );
+      if (!data)
+        return {
+          user: {
+            firstName: "",
+            lastName: "",
+            dateOfBirth: "",
+            gender: "",
+            income: 0,
+            history: [],
+          },
+          totalIncoming: 0,
+          totalOutgoing: 0,
+          friends: [],
+        };
+
+      const appData = JSON.parse(data) as AppData;
       return appData;
     } catch (error) {
       throw error;
@@ -64,7 +74,10 @@ export default class Store {
 
   public static async saveData(payload: AppData) {
     try {
-      await AsyncStorage.setItem(Store.STORAGE_KEY, JSON.stringify(payload));
+      await AsyncStorage.setItem(
+        Store.STORAGE_KEY || "expense_tracker_data",
+        JSON.stringify(payload)
+      );
     } catch (error) {
       throw error;
     }
@@ -79,34 +92,33 @@ export default class Store {
         user: {
           firstName: payload.firstName,
           lastName: payload.lastName,
-          dateOfBirth: undefined,
-          gender: undefined,
-          income: undefined,
+          dateOfBirth: "",
+          gender: "",
+          income: 0,
+          history: [],
         },
         totalIncoming: 0,
         totalOutgoing: 0,
         friends: [],
       };
 
-      await AsyncStorage.setItem(Store.STORAGE_KEY, JSON.stringify(appData));
+      await AsyncStorage.setItem(
+        Store.STORAGE_KEY || "expense_tracker_data",
+        JSON.stringify(appData)
+      );
     } catch (error) {
       throw error;
     }
   }
 
-
-
-
-
-
-  //  /$$   /$$                              
-  // | $$  | $$                              
-  // | $$  | $$  /$$$$$$$  /$$$$$$   /$$$$$$ 
+  //  /$$   /$$
+  // | $$  | $$
+  // | $$  | $$  /$$$$$$$  /$$$$$$   /$$$$$$
   // | $$  | $$ /$$_____/ /$$__  $$ /$$__  $$
   // | $$  | $$|  $$$$$$ | $$$$$$$$| $$  \__/
-  // | $$  | $$ \____  $$| $$_____/| $$      
-  // |  $$$$$$/ /$$$$$$$/|  $$$$$$$| $$      
-  //  \______/ |_______/  \_______/|__/  
+  // | $$  | $$ \____  $$| $$_____/| $$
+  // |  $$$$$$/ /$$$$$$$/|  $$$$$$$| $$
+  //  \______/ |_______/  \_______/|__/
   static async setCurrentUser({
     firstName,
     lastName,
@@ -129,6 +141,7 @@ export default class Store {
           dateOfBirth: appData.user.dateOfBirth,
           gender: appData.user.gender,
           income: appData.user.income,
+          history: appData.user.history,
         },
         totalIncoming: appData.totalIncoming,
         totalOutgoing: appData.totalOutgoing,
@@ -138,8 +151,8 @@ export default class Store {
       if (firstName !== "") newAppData.user.firstName = firstName;
       if (lastName !== "") newAppData.user.lastName = lastName;
       if (dateOfBirth !== "") newAppData.user.dateOfBirth = dateOfBirth;
-      if (gender !== "") newAppData.user.gender = gender;
-      if (income !== 0) newAppData.user.income = income;
+      if (gender) newAppData.user.gender = gender;
+      if (income) newAppData.user.income = income;
       await Store.saveData(newAppData);
     } catch (error) {
       throw error;
@@ -167,19 +180,14 @@ export default class Store {
     };
   }
 
-
-
-
-
-
-  //  /$$$$$$$$        /$$                           /$$          
-  // | $$_____/       |__/                          | $$          
+  //  /$$$$$$$$        /$$                           /$$
+  // | $$_____/       |__/                          | $$
   // | $$     /$$$$$$  /$$  /$$$$$$  /$$$$$$$   /$$$$$$$  /$$$$$$$
   // | $$$$$ /$$__  $$| $$ /$$__  $$| $$__  $$ /$$__  $$ /$$_____/
-  // | $$__/| $$  \__/| $$| $$$$$$$$| $$  \ $$| $$  | $$|  $$$$$$ 
+  // | $$__/| $$  \__/| $$| $$$$$$$$| $$  \ $$| $$  | $$|  $$$$$$
   // | $$   | $$      | $$| $$_____/| $$  | $$| $$  | $$ \____  $$
   // | $$   | $$      | $$|  $$$$$$$| $$  | $$|  $$$$$$$ /$$$$$$$/
-  // |__/   |__/      |__/ \_______/|__/  |__/ \_______/|_______/ 
+  // |__/   |__/      |__/ \_______/|__/  |__/ \_______/|_______/
   static async getFriends(): Promise<Friend[]> {
     const appData: AppData = await Store.getData();
     return appData.friends;
@@ -231,19 +239,14 @@ export default class Store {
     }
   }
 
-
-
-
-
-
-  //  /$$$$$$$$                                                           /$$     /$$                    
-  // |__  $$__/                                                          | $$    |__/                    
-  //    | $$  /$$$$$$  /$$$$$$  /$$$$$$$   /$$$$$$$  /$$$$$$   /$$$$$$$ /$$$$$$   /$$  /$$$$$$  /$$$$$$$ 
+  //  /$$$$$$$$                                                           /$$     /$$
+  // |__  $$__/                                                          | $$    |__/
+  //    | $$  /$$$$$$  /$$$$$$  /$$$$$$$   /$$$$$$$  /$$$$$$   /$$$$$$$ /$$$$$$   /$$  /$$$$$$  /$$$$$$$
   //    | $$ /$$__  $$|____  $$| $$__  $$ /$$_____/ |____  $$ /$$_____/|_  $$_/  | $$ /$$__  $$| $$__  $$
   //    | $$| $$  \__/ /$$$$$$$| $$  \ $$|  $$$$$$   /$$$$$$$| $$        | $$    | $$| $$  \ $$| $$  \ $$
   //    | $$| $$      /$$__  $$| $$  | $$ \____  $$ /$$__  $$| $$        | $$ /$$| $$| $$  | $$| $$  | $$
   //    | $$| $$     |  $$$$$$$| $$  | $$ /$$$$$$$/|  $$$$$$$|  $$$$$$$  |  $$$$/| $$|  $$$$$$/| $$  | $$
-  //    |__/|__/      \_______/|__/  |__/|_______/  \_______/ \_______/   \___/  |__/ \______/ |__/  |__/                                                                                                                                                                                                                                                                              
+  //    |__/|__/      \_______/|__/  |__/|_______/  \_______/ \_______/   \___/  |__/ \______/ |__/  |__/
   static async addTransactionToUser({
     amount,
     description,
@@ -254,10 +257,10 @@ export default class Store {
     description: string;
     category: Category;
     type: Type;
-  }){
-    const appData =  await Store.getData();
+  }) {
+    const appData = await Store.getData();
 
-    if(type === TYPE.INCOMING){
+    if (type === TYPE.INCOMING) {
       appData.totalIncoming += amount;
     } else {
       appData.totalOutgoing += amount;
@@ -276,7 +279,6 @@ export default class Store {
     await Store.saveData(appData);
   }
 
-
   static async addMoneyToFriend({
     id,
     amount,
@@ -284,11 +286,11 @@ export default class Store {
     category,
     type,
   }: {
-    id: string
+    id: string;
     amount: number;
     description: string;
-    category: Category
-    type: Type
+    category: Category;
+    type: Type;
   }) {
     const appData = await Store.getData();
     const friend = appData.friends.find((f) => f.id === id);
@@ -390,27 +392,27 @@ export default class Store {
     id: string;
     personId?: string;
     updates: Partial<Transaction>;
-  }){
-    try{
+  }) {
+    try {
       const appData = await Store.getData();
 
-      if(!personId){
+      if (!personId) {
         const userTxn = appData.user.history?.find((t: any) => t.id === id);
-        if(!userTxn) return;
+        if (!userTxn) return;
 
         Object.assign(userTxn, updates);
         return;
       }
 
       const friend = appData.friends.find((f) => f.id === personId);
-      if(!friend) return;
+      if (!friend) return;
 
       const friendTxn = friend.history.find((t: any) => t.id === id);
-      if(!friendTxn) return;
+      if (!friendTxn) return;
 
       Object.assign(friendTxn, updates);
       await Store.saveData(appData);
-    }catch(error){
+    } catch (error) {
       throw error;
     }
   }
@@ -421,41 +423,37 @@ export default class Store {
   }: {
     id: string;
     personId?: string;
-  }){
-    try{
+  }) {
+    try {
       const appData = await Store.getData();
 
-      if(!personId){
-        appData.user.history = appData.user.history?.filter((t: any) => t.id !== id);
+      if (!personId) {
+        appData.user.history = appData.user.history?.filter(
+          (t: any) => t.id !== id
+        );
         await Store.saveData(appData);
         return;
       }
 
       const friend = appData.friends.find((f) => f.id === personId);
-      if(!friend) return;
+      if (!friend) return;
 
       friend.history = friend.history.filter((t: any) => t.id !== id);
       await Store.saveData(appData);
-    }catch(error){
+    } catch (error) {
       throw error;
     }
   }
 
-
-
-
-
-
-
-  //        /$$                                             /$$                 /$$             /$$             /$$              
-  //       | $$                                            | $$                | $$            | $$            | $$              
-  //   /$$$$$$$  /$$$$$$  /$$  /$$  /$$ /$$$$$$$   /$$$$$$ | $$  /$$$$$$   /$$$$$$$        /$$$$$$$  /$$$$$$  /$$$$$$    /$$$$$$ 
+  //        /$$                                             /$$                 /$$             /$$             /$$
+  //       | $$                                            | $$                | $$            | $$            | $$
+  //   /$$$$$$$  /$$$$$$  /$$  /$$  /$$ /$$$$$$$   /$$$$$$ | $$  /$$$$$$   /$$$$$$$        /$$$$$$$  /$$$$$$  /$$$$$$    /$$$$$$
   //  /$$__  $$ /$$__  $$| $$ | $$ | $$| $$__  $$ |____  $$| $$ /$$__  $$ /$$__  $$       /$$__  $$ |____  $$|_  $$_/   |____  $$
   // | $$  | $$| $$  \ $$| $$ | $$ | $$| $$  \ $$  /$$$$$$$| $$| $$  \ $$| $$  | $$      | $$  | $$  /$$$$$$$  | $$      /$$$$$$$
   // | $$  | $$| $$  | $$| $$ | $$ | $$| $$  | $$ /$$__  $$| $$| $$  | $$| $$  | $$      | $$  | $$ /$$__  $$  | $$ /$$ /$$__  $$
   // |  $$$$$$$|  $$$$$$/|  $$$$$/$$$$/| $$  | $$|  $$$$$$$| $$|  $$$$$$/|  $$$$$$$      |  $$$$$$$|  $$$$$$$  |  $$$$/|  $$$$$$$
-  //  \_______/ \______/  \_____/\___/ |__/  |__/ \_______/|__/ \______/  \_______/       \_______/ \_______/   \___/   \_______/                                                                                                                          
-  static async downloadData():Promise<AppData>{
+  //  \_______/ \______/  \_____/\___/ |__/  |__/ \_______/|__/ \______/  \_______/       \_______/ \_______/   \___/   \_______/
+  static async downloadData(): Promise<AppData> {
     return await Store.getData();
-  }                                                                                                                                                                                                                                                        
+  }
 }

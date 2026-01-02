@@ -1,4 +1,5 @@
-import Store from "@/db/Store";
+import getCurrentUser from "@/db/helper/user/getCurrentUser";
+import setCurrentUser from "@/db/helper/user/setCurrentUser";
 import User from "@/types/helper/userType";
 import { LinearGradient } from "expo-linear-gradient";
 import { usePathname, useRouter } from "expo-router";
@@ -26,12 +27,13 @@ export default function Onboarding() {
     setLoading(true);
 
     try {
-      await Store.setCurrentUser({
+      await setCurrentUser({
         firstName: firstName.trim(),
         lastName: lastName.trim(),
         dateOfBirth: "",
         gender: "",
         income: 0,
+        history: [],
       });
       router.replace("/");
     } catch (error) {
@@ -43,8 +45,8 @@ export default function Onboarding() {
 
   useEffect(() => {
     const checkUser = async () => {
-      const data: User = await Store.getCurrentUser();
-      if (data.firstName && data.lastName) {
+      const data: User | undefined = await getCurrentUser();
+      if (data?.firstName && data?.lastName) {
         router.replace("/");
       }
     };

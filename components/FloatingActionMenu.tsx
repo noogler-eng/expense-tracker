@@ -1,3 +1,4 @@
+import colors from "@/utils/helper/colors";
 import { useRouter } from "expo-router";
 import {
   Clock,
@@ -5,6 +6,7 @@ import {
   Home,
   Plus,
   Receipt,
+  User,
   UserPlus,
 } from "lucide-react-native";
 import React, { useState } from "react";
@@ -27,7 +29,7 @@ const FloatingActionMenu = (props: {
   const toggleMenu = () => {
     setOpen(!open);
     offset.value = open ? 0 : 1;
-    if(props.isOpen) props.onClose();
+    if (props.isOpen) props.onClose();
     else props.onOpen();
   };
 
@@ -53,29 +55,30 @@ const FloatingActionMenu = (props: {
     transform: [{ rotate: `${offset.value * 45}deg` }],
   }));
 
-  const blurStyle = useAnimatedStyle(() => ({
-    opacity: withSpring(offset.value ? 1 : 0),
-  }));
-
   const actions = [
-    { icon: <Home size={20} color="#fff" />, label: "Home", link: "/" },
+    { icon: <Home size={20} color={colors.white} />, label: "Home", link: "/" },
     {
-      icon: <UserPlus size={20} color="#fff" />,
+      icon: <UserPlus size={20} color={colors.white} />,
       label: "Add Friend",
       link: "/addfriend",
     },
     {
-      icon: <Receipt size={20} color="#fff" />,
+      icon: <Receipt size={20} color={colors.white} />,
       label: "Split Bill",
       link: "/splitbill",
     },
     {
-      icon: <DollarSign size={20} color="#fff" />,
+      icon: <DollarSign size={20} color={colors.white} />,
       label: "Add Expense",
       link: "/addexpense",
     },
     {
-      icon: <Clock size={20} color="#fff" />,
+      icon: <User size={20} color={colors.white} />,
+      label: "Add Transaction",
+      link: "/addtransaction",
+    },
+    {
+      icon: <Clock size={20} color={colors.white} />,
       label: "History",
       link: "/history",
     },
@@ -131,7 +134,7 @@ const FloatingActionMenu = (props: {
         className="w-14 h-14 rounded-full bg-neutral-900 items-center justify-center shadow-xl"
       >
         <Animated.View style={plusStyle}>
-          <Plus size={26} color="#fff" />
+          <Plus size={26} color={colors.white} />
         </Animated.View>
       </TouchableOpacity>
     </View>

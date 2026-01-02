@@ -1,3 +1,4 @@
+import colors from "@/utils/helper/colors";
 import { Text, View } from "react-native";
 
 export default function Avtar({
@@ -9,18 +10,18 @@ export default function Avtar({
   lastName: string;
   index: any;
 }) {
-  const colors = [
-    "bg-[#7C2D12]",
-    "bg-[#1E3A8A]",
-    "bg-[#14532D]",
-    "bg-[#312E81]",
-    "bg-[#7F1D1D]",
-    "bg-[#581C87]",
-    "bg-[#7C2D12]",
-    "bg-[#1F2933]",
+  const avatarColors = [
+    colors.avtar1,
+    colors.avtar2,
+    colors.avtar3,
+    colors.avtar4,
+    colors.avtar5,
+    colors.avtar6,
+    colors.avtar7,
+    colors.avtar8,
   ];
 
-  const avatarColor = colors[index % colors.length];
+  const avatarColor = avatarColors[index % avatarColors.length];
 
   return (
     <View className="flex-row items-center">

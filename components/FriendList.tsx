@@ -1,5 +1,7 @@
-import Store from "@/db/Store";
+import getFriends from "@/db/helper/friends/getFriends";
+import removeFriend from "@/db/helper/friends/removeFriend";
 import Friend from "@/types/helper/friendType";
+import colors from "@/utils/helper/colors";
 import { Trash } from "lucide-react-native";
 import { useEffect, useState } from "react";
 import { FlatList, Text, View } from "react-native";
@@ -15,7 +17,7 @@ export default function FriendList(props: {
   useEffect(() => {
     const fetchFriends = async () => {
       try {
-        const friendsData = await Store.getFriends();
+        const friendsData = await getFriends();
         setFriends(friendsData || []);
       } catch (error) {
         console.error("Error loading friends:", error);
@@ -41,8 +43,6 @@ export default function FriendList(props: {
       </View>
     );
   }
-
-  console.log("Friends List Rendered:", friends);
 
   return (
     <FlatList
@@ -83,24 +83,24 @@ export default function FriendList(props: {
                 <Text
                   className={`text-sm font-semibold ${
                     Number(item.balance) === 0
-                      ? "text-white"
+                      ? colors.neutralAmount
                       : item.balance > 0
-                      ? "text-green-400"
-                      : "text-red-400"
+                      ? colors.positiveAmount
+                      : colors.negativeAmount
                   }`}
                 >
                   {Number(item.balance) === 0
                     ? "₹0.00"
                     : Number(item.balance) > 0
                     ? `₹${Number(item.balance).toFixed(2)}`
-                    : `-₹${Math.abs(Number(item.balance)).toFixed(2)}`}
+                    : `₹${Math.abs(Number(item.balance)).toFixed(2)}`}
                 </Text>
 
                 <Trash
                   size={18}
-                  color="#737373"
+                  color={colors.trash}
                   onPress={() => {
-                    Store.removeFriend(item.id);
+                    removeFriend(item.id);
                     props.setRefreshKey
                       ? props.setRefreshKey((prev: any) => prev + 1)
                       : null;

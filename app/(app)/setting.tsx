@@ -1,8 +1,18 @@
-import Store from "@/db/Store";
+import CalendarIcon from "@/components/icons/CalendarIcon";
+import ChevronIcon from "@/components/icons/ChevronIcon";
+import GenderIcon from "@/components/icons/GenderIcon";
+import MoneyIcon from "@/components/icons/MoneyIcon";
+import UserIcon from "@/components/icons/UserIcon";
+import Loading from "@/components/Loading";
+import clearCache from "@/db/helper/app/clearCache";
+import getCurrentUser from "@/db/helper/user/getCurrentUser";
+import setCurrentUser from "@/db/helper/user/setCurrentUser";
 import User from "@/types/helper/userType";
+import colors from "@/utils/helper/colors";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
+import { SaveIcon } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import {
   Platform,
@@ -10,77 +20,8 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  View
+  View,
 } from "react-native";
-import Svg, { Circle, Path, Rect } from "react-native-svg";
-
-// SVG Icons
-const UserIcon = () => (
-  <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"
-      stroke="#8B5CF6"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <Circle cx="12" cy="7" r="4" stroke="#8B5CF6" strokeWidth="2" />
-  </Svg>
-);
-
-const CalendarIcon = () => (
-  <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-    <Rect
-      x="3"
-      y="4"
-      width="18"
-      height="18"
-      rx="2"
-      stroke="#EC4899"
-      strokeWidth="2"
-    />
-    <Path d="M16 2v4M8 2v4M3 10h18" stroke="#EC4899" strokeWidth="2" strokeLinecap="round" />
-  </Svg>
-);
-
-const GenderIcon = () => (
-  <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-    <Circle cx="12" cy="14" r="4" stroke="#6366F1" strokeWidth="2" />
-    <Path d="M12 6v4M19 9l-2.5 2.5" stroke="#6366F1" strokeWidth="2" strokeLinecap="round" />
-    <Path d="M19 4v5h-5" stroke="#6366F1" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-  </Svg>
-);
-
-const MoneyIcon = () => (
-  <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"
-      stroke="#10B981"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-  </Svg>
-);
-
-const SaveIcon = () => (
-  <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-    <Path
-      d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"
-      stroke="currentColor"
-      strokeWidth="2"
-      strokeLinecap="round"
-      strokeLinejoin="round"
-    />
-    <Path d="M17 21v-8H7v8M7 3v5h8" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-  </Svg>
-);
-
-const ChevronIcon = () => (
-  <Svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-    <Path d="M9 18l6-6-6-6" stroke="#9CA3AF" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
-  </Svg>
-);
 
 export default function Setting() {
   // User info
@@ -104,16 +45,16 @@ export default function Setting() {
   useEffect(() => {
     const loadUser = async () => {
       try {
-        const user: User = await Store.getCurrentUser();
+        const user: User | undefined = await getCurrentUser();
         setSettingData({
-          firstName: user.firstName || "",
-          lastName: user.lastName || "",
-          dateOfBirth: user.dateOfBirth || "",
-          gender: user.gender || "",
-          income: user.income || 0,
+          firstName: user?.firstName || "",
+          lastName: user?.lastName || "",
+          dateOfBirth: user?.dateOfBirth || "",
+          gender: user?.gender || "",
+          income: user?.income || 0,
         });
-               
-        if (user.dateOfBirth) {
+
+        if (user?.dateOfBirth) {
           const parsedDate = new Date(user.dateOfBirth);
           if (!isNaN(parsedDate.getTime())) {
             setDobDate(parsedDate);
@@ -127,20 +68,19 @@ export default function Setting() {
     loadUser();
   }, []);
 
-  // Save handler
   const handleSave = async () => {
     if (!settingData.firstName.trim() || !settingData.lastName.trim()) return;
 
     setLoading(true);
     try {
-      await Store.setCurrentUser({
+      await setCurrentUser({
         firstName: settingData.firstName.trim(),
         lastName: settingData.lastName.trim(),
         dateOfBirth: settingData.dateOfBirth,
         gender: settingData.gender,
         income: settingData.income,
+        history: [],
       });
-
     } catch (error) {
       console.error("error while setting new data", error);
     } finally {
@@ -148,20 +88,23 @@ export default function Setting() {
     }
   };
 
-
-  const handleClearCache = async() => {
+  const handleClearCache = async () => {
     setLoading(true);
     try {
-      await Store.clearCache();
+      await clearCache();
       router.replace("/onboarding");
     } catch (error) {
       console.error("error while clearing cache", error);
     } finally {
       setLoading(false);
     }
-  }
+  };
 
   const genderOptions = ["Male", "Female", "Non-binary", "Prefer not to say"];
+
+  if (loading) {
+    return <Loading />;
+  }
 
   return (
     <View className="flex-1 bg-[#0B0B0D]">
@@ -195,9 +138,11 @@ export default function Setting() {
                 </View>
                 <TextInput
                   value={settingData.firstName}
-                  onChangeText={(text) => setSettingData({ ...settingData, firstName: text })}
+                  onChangeText={(text) =>
+                    setSettingData({ ...settingData, firstName: text })
+                  }
                   placeholder="Enter your first name"
-                  placeholderTextColor="#6B7280"
+                  placeholderTextColor={colors.placeholder}
                   autoCapitalize="words"
                   className="bg-[#0F0F12] text-white pl-14 pr-5 py-4 rounded-2xl border border-neutral-800 text-base z-[-10]"
                 />
@@ -215,9 +160,11 @@ export default function Setting() {
                 </View>
                 <TextInput
                   value={settingData.lastName}
-                  onChangeText={(text) => setSettingData({ ...settingData, lastName: text })}
+                  onChangeText={(text) =>
+                    setSettingData({ ...settingData, lastName: text })
+                  }
                   placeholder="Enter your last name"
-                  placeholderTextColor="#6B7280"
+                  placeholderTextColor={colors.placeholder}
                   autoCapitalize="words"
                   className="bg-[#0F0F12] text-white pl-14 pr-5 py-4 rounded-2xl border border-neutral-800 text-base"
                 />
@@ -250,7 +197,9 @@ export default function Setting() {
                 <View className="bg-[#0F0F12] pl-14 pr-5 py-4 rounded-2xl border border-neutral-800 flex-row items-center justify-between">
                   <Text
                     className={`text-base ${
-                      settingData.dateOfBirth ? "text-white" : "text-neutral-500"
+                      settingData.dateOfBirth
+                        ? "text-white"
+                        : "text-neutral-500"
                     }`}
                   >
                     {settingData.dateOfBirth || "Select date of birth"}
@@ -271,7 +220,10 @@ export default function Setting() {
                   setShowDatePicker(false);
                   if (selectedDate) {
                     setDobDate(selectedDate);
-                    setSettingData({ ...settingData, dateOfBirth: selectedDate.toISOString().split("T")[0] });
+                    setSettingData({
+                      ...settingData,
+                      dateOfBirth: selectedDate.toISOString().split("T")[0],
+                    });
                   }
                 }}
               />
@@ -289,7 +241,9 @@ export default function Setting() {
                     <TouchableOpacity
                       key={option}
                       activeOpacity={0.7}
-                      onPress={() => setSettingData({ ...settingData, gender: option })}
+                      onPress={() =>
+                        setSettingData({ ...settingData, gender: option })
+                      }
                       className={`pl-14 pr-5 py-4 flex-row items-center justify-between ${
                         index < genderOptions.length - 1
                           ? "border-b border-neutral-800"
@@ -298,7 +252,9 @@ export default function Setting() {
                     >
                       <Text
                         className={`text-base ${
-                          settingData.gender === option ? "text-white font-medium" : "text-neutral-400"
+                          settingData.gender === option
+                            ? "text-white font-medium"
+                            : colors.neutralAmount
                         }`}
                       >
                         {option}
@@ -335,9 +291,11 @@ export default function Setting() {
                 </View>
                 <TextInput
                   value={String(settingData.income)}
-                  onChangeText={(text) => setSettingData({ ...settingData, income: Number(text) })}
+                  onChangeText={(text) =>
+                    setSettingData({ ...settingData, income: Number(text) })
+                  }
                   placeholder="Enter your monthly income"
-                  placeholderTextColor="#6B7280"
+                  placeholderTextColor={colors.placeholder}
                   keyboardType="numeric"
                   className="bg-[#0F0F12] text-white pl-14 pr-5 py-4 rounded-2xl border border-neutral-800 text-base"
                 />
@@ -357,9 +315,7 @@ export default function Setting() {
           >
             <LinearGradient
               colors={
-                loading
-                  ? ["#404040", "#262626"]
-                  : ["#FFFFFF", "#F3F4F6"]
+                loading ? ["#404040", "#262626"] : [colors.white, "#F3F4F6"]
               }
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
@@ -386,11 +342,7 @@ export default function Setting() {
             className="overflow-hidden rounded-2xl my-4"
           >
             <LinearGradient
-              colors={
-                loading
-                  ? ["#404040", "#262626"]
-                  : ["#FFFFFF", "#F3F4F6"]
-              }
+              colors={loading ? ["#404040", "#262626"] : ["#FFFFFF", "#F3F4F6"]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               className="py-4 px-6 flex-row items-center justify-center"
