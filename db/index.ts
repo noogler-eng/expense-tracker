@@ -18,12 +18,10 @@ import updateFriendsData from "@/db/helper/friends/updateFriendsData";
 
 
 // transaction data
-import editTransaction from "@/db/helper/txn/editTransaction";
-import removeTxnFromList from "@/db/helper/txn/removeTxnFromList";
-import revertLastSimpleTransaction from "@/db/helper/txn/revertLastSimpleTransaction";
-import revertLastSplitTransaction from "@/db/helper/txn/revertLastSplitTransaction";
+import addTransactionMe from "@/db/helper/txn/addTransactionMe";
 import simpleTransaction from "@/db/helper/txn/simpleTransaction";
 import splitTransaction from "@/db/helper/txn/splitTransaction";
+import updateTransaction from "@/db/helper/txn/updateTransaction";
 
 
 // history data
@@ -57,10 +55,8 @@ const friends = {
 const transactions = {
     simpleTransaction: simpleTransaction,
     splitTransaction: splitTransaction,
-    revertLastSimpleTransaction: revertLastSimpleTransaction,
-    revertLastSplitTransaction: revertLastSplitTransaction,
-    removeTxnFromList: removeTxnFromList,
-    editTransaction: editTransaction,
+    updateTransaction: updateTransaction,
+    addTransactionMe: addTransactionMe,
 }
 
 const history = {

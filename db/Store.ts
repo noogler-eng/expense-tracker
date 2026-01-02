@@ -415,6 +415,32 @@ export default class Store {
     }
   }
 
+  static async removeTransaction({
+    id,
+    personId,
+  }: {
+    id: string;
+    personId?: string;
+  }){
+    try{
+      const appData = await Store.getData();
+
+      if(!personId){
+        appData.user.history = appData.user.history?.filter((t: any) => t.id !== id);
+        await Store.saveData(appData);
+        return;
+      }
+
+      const friend = appData.friends.find((f) => f.id === personId);
+      if(!friend) return;
+
+      friend.history = friend.history.filter((t: any) => t.id !== id);
+      await Store.saveData(appData);
+    }catch(error){
+      throw error;
+    }
+  }
+
 
 
 
