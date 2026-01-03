@@ -102,14 +102,14 @@ export default function Index() {
   }
 
   const chartData = categoryTotals.map((item, index) => ({
-    name: item.name,
+    name: item.name.slice(0, 7) + "...",
     population: item.amount,
     color: [
       colors.chartGreen,
       colors.chartBlue,
       colors.chartOrange,
       colors.chartPurple,
-      colors.chartRed
+      colors.chartRed,
     ][index % 5],
     legendFontColor: colors.aboutIconColor,
     legendFontSize: 12,
@@ -340,13 +340,14 @@ export default function Index() {
               width={screenWidth - 48}
               height={220}
               chartConfig={{
-                color: () => "#fff",
-                labelColor: () => "#A1A1AA",
+                color: () => colors.white,
+                labelColor: () => colors.placeholder,
               }}
               accessor="population"
               backgroundColor="transparent"
               paddingLeft="16"
-              absolute
+              hasLegend={true}
+              avoidFalseZero
             />
           </View>
         </Animatable.View>
