@@ -18,6 +18,15 @@ const colors = {
     "trash": "#737373",
     "placeholder": "#6B7280",
     "inputBoxBackground": "#0F0F12",
+
+    "aboutIconColor": "#A1A1AA",
+
+    // chart colors
+    "chartGreen": "#22C55E", 
+    "chartBlue": "#3B82F6", 
+    "chartOrange" :"#F97316", 
+    "chartPurple" :"#A855F7", 
+    "chartRed" :"#EF4444"
 }
 
 export default colors;

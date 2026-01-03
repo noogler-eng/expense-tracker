@@ -8,8 +8,9 @@ import colors from "@/utils/helper/colors";
 import getDaysInMonth from "@/utils/helper/days";
 import { useRouter } from "expo-router";
 import React, { useEffect, useState } from "react";
-import { ScrollView, Text, View } from "react-native";
+import { Dimensions, ScrollView, Text, View } from "react-native";
 import * as Animatable from "react-native-animatable";
+import { PieChart } from "react-native-chart-kit";
 
 export default function Index() {
   const router = useRouter();
@@ -76,9 +77,43 @@ export default function Index() {
     getDaysInMonth(new Date().getFullYear(), new Date().getMonth() + 1) -
     new Date().getDate();
 
+  const screenWidth = Dimensions.get("window").width;
+
+  const categoryTotals = React.useMemo(() => {
+    if (!history || history.length === 0) return [];
+
+    const map: Record<string, number> = {};
+
+    history.forEach((txn: any) => {
+      if (txn.type !== "outgoing") return;
+
+      const category = txn.category || "Other";
+      map[category] = (map[category] || 0) + Math.abs(txn.amount);
+    });
+
+    return Object.entries(map).map(([key, value]) => ({
+      name: key,
+      amount: value,
+    }));
+  }, [history]);
+
   if (loading) {
     return <Loading />;
   }
+
+  const chartData = categoryTotals.map((item, index) => ({
+    name: item.name,
+    population: item.amount,
+    color: [
+      colors.chartGreen,
+      colors.chartBlue,
+      colors.chartOrange,
+      colors.chartPurple,
+      colors.chartRed
+    ][index % 5],
+    legendFontColor: colors.aboutIconColor,
+    legendFontSize: 12,
+  }));
 
   return (
     <ScrollView className="flex-1 bg-[#0B0B0D] px-6 pt-6">
@@ -286,6 +321,46 @@ export default function Index() {
             </Text>
           </View>
         )}
+      </View>
+
+      {categoryTotals.length > 0 && (
+        <Animatable.View
+          animation="fadeInUp"
+          delay={400}
+          duration={800}
+          className="mt-10"
+        >
+          <Text className="text-white text-xl font-semibold mb-4">
+            Spending by Category
+          </Text>
+
+          <View className="bg-[#0F0F12] border border-neutral-800 rounded-2xl py-4">
+            <PieChart
+              data={chartData}
+              width={screenWidth - 48}
+              height={220}
+              chartConfig={{
+                color: () => "#fff",
+                labelColor: () => "#A1A1AA",
+              }}
+              accessor="population"
+              backgroundColor="transparent"
+              paddingLeft="16"
+              absolute
+            />
+          </View>
+        </Animatable.View>
+      )}
+
+      <View className="mt-4 bg-[#0F0F12] border border-neutral-800 rounded-2xl p-4">
+        {categoryTotals.map((item) => (
+          <View key={item.name} className="flex-row justify-between mb-3">
+            <Text className="text-neutral-400 text-sm">{item.name}</Text>
+            <Text className="text-white font-semibold">
+              ₹{item.amount.toFixed(2)}
+            </Text>
+          </View>
+        ))}
       </View>
 
       {/* Footer hint */}

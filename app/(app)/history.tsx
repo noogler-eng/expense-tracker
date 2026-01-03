@@ -1,20 +1,20 @@
+import EntryPoint from "@/components/EntryPoint";
 import HistoryList from "@/components/HistoryList";
 import LoadingScreen from "@/components/Loading";
 import Store from "@/db/Store";
 import Friend from "@/types/helper/friendType";
 import colors from "@/utils/helper/colors";
+import { useRouter } from "expo-router";
+import { UserPlus } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
-import {
-  FlatList,
-  Text,
-  TouchableOpacity,
-  View
-} from "react-native";
+import { FlatList, Text, TouchableOpacity, View } from "react-native";
 
 export default function History() {
   const [friends, setFriends] = useState<Friend[]>([]);
   const [selectedFriend, setSelectedFriend] = useState<Friend | null>(null);
   const [loading, setLoading] = useState(true);
+
+  const router = useRouter();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -33,7 +33,7 @@ export default function History() {
   }, []);
 
   if (loading) {
-    return <LoadingScreen/>
+    return <LoadingScreen />;
   }
 
   if (selectedFriend) {
@@ -61,6 +61,36 @@ export default function History() {
     );
   }
 
+  if (!friends || friends.length === 0) {
+    return (
+      <View
+        style={{ backgroundColor: colors.black }}
+        className="flex-1 items-center justify-center px-6"
+      >
+        {/* Illustration / Entry */}
+        <View className="mb-5">
+          <EntryPoint />
+        </View>
+
+        {/* Message */}
+        <Text className={`${colors.neutralAmount} text-sm mb-6 text-center`}>
+          No friends found. Add friends to start tracking and splitting
+          expenses.
+        </Text>
+
+        {/* CTA */}
+        <TouchableOpacity
+          activeOpacity={0.85}
+          onPress={() => router.replace("/addfriend")}
+          className="flex-row items-center gap-3 bg-white px-6 py-3 rounded-2xl"
+        >
+          <UserPlus size={18} color="#000" />
+          <Text className="text-black font-semibold text-sm">Add Friend</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   return (
     <View className="flex-1 bg-[#0B0B0D] px-6 pt-4">
       <Text className="text-white text-3xl font-bold mb-2">History</Text>
@@ -73,7 +103,16 @@ export default function History() {
         keyExtractor={(item) => item.id}
         showsVerticalScrollIndicator={false}
         renderItem={({ item, index }) => {
-          const avtarColors = [colors.avtar1, colors.avtar2, colors.avtar3, colors.avtar4, colors.avtar5, colors.avtar6, colors.avtar7, colors.avtar8];
+          const avtarColors = [
+            colors.avtar1,
+            colors.avtar2,
+            colors.avtar3,
+            colors.avtar4,
+            colors.avtar5,
+            colors.avtar6,
+            colors.avtar7,
+            colors.avtar8,
+          ];
           const avatarColor = avtarColors[index % avtarColors.length];
 
           return (
@@ -88,7 +127,9 @@ export default function History() {
                   style={{ backgroundColor: avatarColor }}
                   className="w-10 h-10 rounded-full items-center justify-center"
                 >
-                  <Text className={`${colors.neutralAmount} font-semibold text-sm`}>
+                  <Text
+                    className={`${colors.neutralAmount} font-semibold text-sm`}
+                  >
                     {item.firstName[0]}
                     {item.lastName[0]}
                   </Text>

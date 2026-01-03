@@ -56,7 +56,7 @@ export default function About() {
 
       {/* Steps */}
       <Item
-        icon={<Database size={20} color="#A1A1AA" />}
+        icon={<Database size={20} color={colors.aboutIconColor} />}
         title="Local Cache First"
         description="All your data is stored securely in local cache on your device.
         This ensures fast performance, offline access, and complete privacy.
@@ -64,7 +64,7 @@ export default function About() {
       />
 
       <Item
-        icon={<Home size={20} color="#A1A1AA" />}
+        icon={<Home size={20} color={colors.aboutIconColor} />}
         title="Core Screens"
         description="The app includes Home, Add Friend, Split Bill, Add Transaction,
         Friend Expenses, History, and Share History screens —
@@ -72,7 +72,7 @@ export default function About() {
       />
 
       <Item
-        icon={<Users size={20} color="#A1A1AA" />}
+        icon={<Users size={20} color={colors.aboutIconColor} />}
         title="Split Bills with Friends"
         description="Easily split expenses among selected friends.
         Resolve automatically calculates who owes whom and
@@ -80,7 +80,7 @@ export default function About() {
       />
 
       <Item
-        icon={<Receipt size={20} color="#A1A1AA" />}
+        icon={<Receipt size={20} color={colors.aboutIconColor} />}
         title="Track Personal & Shared Transactions"
         description="You can add transactions done by you or expenses paid on behalf
         of friends. Each transaction is stored with amount, description,
@@ -88,7 +88,7 @@ export default function About() {
       />
 
       <Item
-        icon={<History size={20} color="#A1A1AA" />}
+        icon={<History size={20} color={colors.aboutIconColor} />}
         title="Transaction History"
         description="All transactions are shown in a clean chronological history.
         You can review past expenses anytime and share summaries
@@ -96,7 +96,7 @@ export default function About() {
       />
 
       <Item
-        icon={<Calculator size={20} color="#A1A1AA" />}
+        icon={<Calculator size={20} color={colors.aboutIconColor} />}
         title="Monthly Balance Calculation"
         description="At the end of each month, Resolve calculates how much money
         remains by comparing your income and total expenses,
@@ -104,7 +104,7 @@ export default function About() {
       />
 
       <Item
-        icon={<PieChart size={20} color="#A1A1AA" />}
+        icon={<PieChart size={20} color={colors.aboutIconColor} />}
         title="Category-Based Insights"
         description="Resolve analyzes your transactions to show which categories
         you spend the most on — such as food, travel, or entertainment —
@@ -112,7 +112,7 @@ export default function About() {
       />
 
       <Item
-        icon={<Share2 size={20} color="#A1A1AA" />}
+        icon={<Share2 size={20} color={colors.aboutIconColor} />}
         title="Share Expense History"
         description="You can share transaction history or settlement summaries
         with friends directly, making bill settlements transparent
