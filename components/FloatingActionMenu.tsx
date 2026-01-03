@@ -4,10 +4,11 @@ import {
   Clock,
   DollarSign,
   Home,
+  Info,
   Plus,
   Receipt,
   User,
-  UserPlus,
+  UserPlus
 } from "lucide-react-native";
 import React, { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
@@ -82,6 +83,11 @@ const FloatingActionMenu = (props: {
       label: "History",
       link: "/history",
     },
+    {
+      icon: <Info size={20} color={colors.white} />,
+      label: "About",
+      link: "/about",
+    }
   ];
 
   return (
