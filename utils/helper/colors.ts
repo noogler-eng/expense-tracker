@@ -16,7 +16,8 @@ const colors = {
     "avtar8" :"bg-[#7C2D12]",
 
     "trash": "#737373",
-    "placeholder": "#6B7280"
+    "placeholder": "#6B7280",
+    "inputBoxBackground": "#0F0F12",
 }
 
 export default colors;

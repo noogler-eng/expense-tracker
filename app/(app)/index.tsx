@@ -37,8 +37,6 @@ export default function Index() {
         });
         setHistory(appData.user.history || []);
         setFriendsData(appData.friends || []);
-        console.log("App Data in Index Page:", appData.friends);
-        console.log("isArray:", Array.isArray(friendsData));
 
         let netBalance = 0;
         let expectedIncome = 0;
@@ -181,7 +179,7 @@ export default function Index() {
 
       {/* user income notice coming in certain number of times */}
       <View className="mt-2">
-        {typeof user?.income === "number" && (
+        {typeof user?.income === "number" && user?.income != 0 && (
           <View className="bg-[#0F0F12] border border-neutral-800 rounded-2xl p-4 mb-2">
             <Text className="text-neutral-500 font-semibold">
               Your expected income is ₹{user.income} coming in {days} days!
@@ -291,7 +289,7 @@ export default function Index() {
       </View>
 
       {/* Footer hint */}
-      <Animatable.View animation="fadeIn" delay={700} className="mt-10">
+      <Animatable.View animation="fadeIn" delay={700} className="mt-4 mb-20">
         <Text className="text-neutral-500 text-sm text-center">
           Your balance updates automatically as you add or split expenses
         </Text>
