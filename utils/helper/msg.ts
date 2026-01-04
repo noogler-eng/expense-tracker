@@ -1,37 +1,47 @@
-const sendMsg = (firstname: string, lastname: string, sortedHistory: any) => {
-  const userName = firstname + " " + lastname || "User";
+const sendMsg = (
+  firstName: string,
+  lastName: string,
+  sortedHistory: any[]
+) => {
+  const userName =
+    `${firstName} ${lastName}`.trim() || "User";
 
-  const totalAmount = sortedHistory.reduce((acc: any, item: any) => {
-    return item.type === "outgoing" ? acc - item.amount : acc + item.amount;
-  }, 0);
+  let incoming = 0;
+  let outgoing = 0;
 
-  const formattedTotal = totalAmount.toFixed(2);
+  sortedHistory.forEach(item => {
+    if (item.type === "outgoing") outgoing += item.amount;
+    else incoming += item.amount;
+  });
 
-  const allTransactionsText = sortedHistory
-    .map((item: any, i: any) => {
-      const typeFormatted =
-        item.type.charAt(0).toUpperCase() + item.type.slice(1);
-      const sign = item.type === "outgoing" ? "-" : "+";
+  const netBalance = incoming - outgoing;
+
+  const transactionsText = sortedHistory
+    .map((item, index) => {
+      const sign = item.type === "outgoing" ? "−" : "+";
       const amount = Number(item.amount).toFixed(2);
-      const dateStr = new Date(item.date).toLocaleString();
+      const date = new Date(item.date).toLocaleDateString();
       const desc = item.description || "No description";
 
-      return `${i + 1}. ${desc} 
-      Type: ${typeFormatted}
-      Amount: ${sign}₹${amount}
-      Date: ${dateStr}`;
+      return `${index + 1}. ${desc}
+   ${sign} ₹${amount} • ${date}`;
     })
     .join("\n\n");
 
-  const message = `Split Mate - Expense Tracker
-    User: ${userName}
-    Total Transactions: ${sortedHistory.length}
-    Net Balance: ₹${formattedTotal}
-    Transaction History:
-    ${allTransactionsText}
-    `.trim();
+  return `
+Resolve — Expense Summary
 
-  return message;
+Hi brue, ${userName}
+Total Transactions: ${sortedHistory.length}
+
+Summary
+• You have to give me: ₹${incoming.toFixed(2)}
+• I have to give you: ₹${outgoing.toFixed(2)}
+• Net Balance: ₹${netBalance.toFixed(2)}
+
+Transactions
+${transactionsText}
+`.trim();
 };
 
 export default sendMsg;

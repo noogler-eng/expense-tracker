@@ -1,20 +1,20 @@
 {
   "expo": {
-    "name": "splitwise",
-    "slug": "splitwise",
+    "name": "Resolve",
+    "slug": "resolve",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
-    "scheme": "splitwise",
+    "icon": "./assets/images/logo.png",
+    "scheme": "resolveapp",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.sharad.splitwise"
+      "bundleIdentifier": "com.sharad.resolveapp"
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/logo.png",
         "backgroundColor": "#ffffff"
       },
       "edgeToEdgeEnabled": true,
@@ -43,7 +43,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "596fd1e9-ef1b-4ddd-a652-9d855941a2b7"
+        "projectId": "22b8c895-7920-4a52-a4f3-e857d1d7260c"
       }
     }
   }
