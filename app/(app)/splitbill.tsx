@@ -1,9 +1,11 @@
 import splitTransaction from "@/db/helper/txn/splitTransaction";
 import Store from "@/db/Store";
+import { Category } from "@/types";
 import Friend from "@/types/helper/friendType";
 import colors from "@/utils/helper/colors";
 import React, { useEffect, useState } from "react";
 import {
+  Alert,
   FlatList,
   Text,
   TextInput,
@@ -12,12 +14,21 @@ import {
 } from "react-native";
 import * as Animatable from "react-native-animatable";
 
+const CATEGORIES: { label: string; value: Category }[] = [
+  { label: "Food", value: "food" },
+  { label: "Transport", value: "transport" },
+  { label: "Entertainment", value: "entertainment" },
+  { label: "Utilities", value: "utilities" },
+  { label: "Others", value: "others" },
+];
+
 export default function SplitBill() {
   const [friends, setFriends] = useState<any[]>([]);
   const [selectedFriends, setSelectedFriends] = useState<Set<string>>(new Set());
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [type, setType] = useState<"incoming" | "outgoing">("incoming");
+  const [category, setCategory] = useState<Category>("others");
 
   useEffect(() => {
     loadFriends();
@@ -43,17 +54,19 @@ export default function SplitBill() {
     try {
       const splitTxnDetails = {
         ids: Array.from(selectedFriends),
-        totalAmount: Number(amount) / selectedFriends.size,
+        totalAmount: Number(amount),
         description: description || "No description",
-        category: "food" as const,
+        category,
         type,
       }
       await splitTransaction(splitTxnDetails);
-      
+
       setAmount("");
       setDescription("");
       setSelectedFriends(new Set());
+      setCategory("others");
       loadFriends();
+      Alert.alert("Done", `Bill split among ${splitTxnDetails.ids.length} friends.`);
     } catch (error) {
       console.error("Error splitting amount:", error);
     }
@@ -170,11 +183,14 @@ export default function SplitBill() {
       />
 
       {/* Type */}
-      <View className="flex-row mt-6 mb-8">
+      <Text className="text-neutral-500 text-xs uppercase tracking-widest mt-4 mb-2">
+        Who owes whom?
+      </Text>
+      <View className="flex-row mb-2">
         <TouchableOpacity
           onPress={() => setType("incoming")}
           className={`flex-1 py-4 mr-2 rounded-2xl items-center ${
-            type === "incoming" ? "bg-green-500/20" : "bg-[#0F0F12]"
+            type === "incoming" ? "bg-green-500/20 border border-green-500/30" : "bg-[#0F0F12]"
           }`}
         >
           <Text
@@ -182,14 +198,14 @@ export default function SplitBill() {
               type === "incoming" ? "text-green-400" : "text-neutral-400"
             }`}
           >
-            Add
+            They Owe Me
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           onPress={() => setType("outgoing")}
           className={`flex-1 py-4 ml-2 rounded-2xl items-center ${
-            type === "outgoing" ? "bg-red-500/20" : "bg-[#0F0F12]"
+            type === "outgoing" ? "bg-red-500/20 border border-red-500/30" : "bg-[#0F0F12]"
           }`}
         >
           <Text
@@ -197,10 +213,46 @@ export default function SplitBill() {
               type === "outgoing" ? "text-red-400" : "text-neutral-400"
             }`}
           >
-            Deduct
+            I Owe Them
           </Text>
         </TouchableOpacity>
       </View>
+      <Text className="text-neutral-500 text-xs mb-6">
+        {type === "incoming" ? "You paid — they owe you their share" : "They paid — you owe your share"}
+      </Text>
+
+      {/* Category */}
+      {type === "outgoing" && (
+        <View className="mb-6">
+          <Text className="text-neutral-500 text-xs uppercase tracking-widest mb-3">
+            Category
+          </Text>
+          <View className="flex-row flex-wrap gap-3">
+            {CATEGORIES.map((cat) => {
+              const selected = category === cat.value;
+              return (
+                <TouchableOpacity
+                  key={cat.value}
+                  onPress={() => setCategory(cat.value)}
+                  className={`px-4 py-3 rounded-2xl border ${
+                    selected
+                      ? "bg-white border-white"
+                      : "bg-[#0F0F12] border-neutral-800"
+                  }`}
+                >
+                  <Text
+                    className={`text-sm font-semibold ${
+                      selected ? "text-black" : "text-neutral-400"
+                    }`}
+                  >
+                    {cat.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+      )}
 
       {/* CTA */}
       <TouchableOpacity

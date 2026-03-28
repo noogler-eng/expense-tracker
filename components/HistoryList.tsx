@@ -66,7 +66,7 @@ export default function HistoryList({
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() => {
-            Store.clearFriendHistory(id);
+            Store.clearFriendHistory({ id });
             router.push("/history");
           }}
           className="bg-neutral-700 py-3 rounded-lg items-center w-1/3"
@@ -82,10 +82,9 @@ export default function HistoryList({
         showsVerticalScrollIndicator={false}
         contentContainerStyle={{ paddingBottom: 20, paddingHorizontal: 8 }}
         renderItem={({ item, index }) => {
-          let amountColor = "text-neutral-300";
-          if (item.type === "incoming") amountColor = "text-neutral-400";
-          else if (item.type === "outgoing") amountColor = "text-neutral-500";
-          else if (item.type === "split") amountColor = "text-neutral-600";
+          let amountColor = "text-white";
+          if (item.type === "incoming") amountColor = "text-green-400";
+          else if (item.type === "outgoing") amountColor = "text-red-400";
 
           return (
             <Animatable.View

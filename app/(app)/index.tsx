@@ -2,14 +2,17 @@ import LastDayBottomSheet from "@/components/bottomsheets/LastDayBottomSheet";
 import EntryPoint from "@/components/EntryPoint";
 import GlowCard from "@/components/GlowCard";
 import Loading from "@/components/Loading";
+import Store from "@/db/Store";
 import getAppData from "@/db/helper/app/getAppData";
 import { AppData } from "@/types";
+import QuickAddShortcut from "@/types/helper/shortcutType";
 import Friend from "@/types/helper/friendType";
 import colors from "@/utils/helper/colors";
 import getDaysInMonth from "@/utils/helper/days";
 import { useRouter } from "expo-router";
+import { Flame, Zap } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
-import { Dimensions, ScrollView, Text, View } from "react-native";
+import { Alert, Dimensions, ScrollView, Text, TouchableOpacity, View } from "react-native";
 import * as Animatable from "react-native-animatable";
 import { PieChart } from "react-native-chart-kit";
 
@@ -22,6 +25,9 @@ export default function Index() {
   const [friendsData, setFriendsData] = useState<Friend[] | null>(null);
   const [showAll, setShowAll] = useState(false);
   const [isOpen, setIsOpen] = useState(true);
+  const [shortcuts, setShortcuts] = useState<QuickAddShortcut[]>([]);
+  const [streak, setStreak] = useState(0);
+  const [budgetWarnings, setBudgetWarnings] = useState<{ category: string; spent: number; limit: number }[]>([]);
 
   useEffect(() => {
     setLoading(true);
@@ -39,12 +45,13 @@ export default function Index() {
           totalOutgoing: appData?.totalOutgoing || 0,
         });
         setHistory(appData.user.history || []);
-        setFriendsData(appData.friends || []);
+        const friends = appData.friends || [];
+        setFriendsData(friends);
 
         let netBalance = 0;
         let expectedIncome = 0;
 
-        friendsData?.forEach((friend: Friend) => {
+        friends.forEach((friend: Friend) => {
           const bal = Number(friend.balance || 0);
           netBalance += bal;
           expectedIncome += bal;
@@ -57,6 +64,56 @@ export default function Index() {
           netBalance,
           expectedIncome,
         });
+
+        // Process recurring expenses on app load
+        await Store.processRecurringExpenses();
+
+        // Load shortcuts
+        setShortcuts(appData.quickAddShortcuts || []);
+
+        // Calculate spending streak
+        const userHistory = appData.user.history || [];
+        const outgoing = userHistory.filter((t: any) => t.type === "outgoing");
+        if (outgoing.length > 0) {
+          const dailyMap: Record<string, number> = {};
+          outgoing.forEach((t: any) => {
+            const day = new Date(t.date).toISOString().split("T")[0];
+            dailyMap[day] = (dailyMap[day] || 0) + t.amount;
+          });
+          const dailyValues = Object.values(dailyMap);
+          const avg = dailyValues.reduce((a, b) => a + b, 0) / dailyValues.length;
+          let s = 0;
+          for (let i = 0; i < 90; i++) {
+            const d = new Date();
+            d.setDate(d.getDate() - i);
+            const key = d.toISOString().split("T")[0];
+            const spent = dailyMap[key] || 0;
+            if (spent <= avg) s++;
+            else break;
+          }
+          setStreak(s);
+        }
+
+        // Budget warnings
+        const budgets = appData.budgets || {};
+        const now = new Date();
+        const thisMonthTxns = userHistory.filter((t: any) => {
+          const d = new Date(t.date);
+          return t.type === "outgoing" && d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+        });
+        const catSpend: Record<string, number> = {};
+        thisMonthTxns.forEach((t: any) => {
+          const cat = t.category || "others";
+          catSpend[cat] = (catSpend[cat] || 0) + t.amount;
+        });
+        const warnings: { category: string; spent: number; limit: number }[] = [];
+        Object.entries(budgets).forEach(([cat, limit]) => {
+          const spent = catSpend[cat] || 0;
+          if (spent >= limit * 0.8) {
+            warnings.push({ category: cat, spent, limit });
+          }
+        });
+        setBudgetWarnings(warnings);
 
         setTimeout(() => setLoading(false), 700);
       } catch (error) {
@@ -135,6 +192,66 @@ export default function Index() {
             {user?.firstName} {user?.lastName}
           </Text>
         </Animatable.View>
+
+        {/* Quick Add Shortcuts */}
+        {shortcuts.length > 0 && (
+          <Animatable.View animation="fadeInUp" delay={100} duration={600} className="mt-6">
+            <Text className="text-neutral-400 text-xs uppercase tracking-widest mb-3">
+              Quick Add
+            </Text>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+              {shortcuts.map((s) => (
+                <TouchableOpacity
+                  key={s.id}
+                  activeOpacity={0.8}
+                  onPress={async () => {
+                    await Store.executeShortcut(s.id);
+                    Alert.alert("Added", `${s.label} — ₹${s.amount}`);
+                  }}
+                  className="mr-3 px-4 py-3 rounded-2xl border border-neutral-800 bg-[#0F0F12] flex-row items-center gap-2"
+                >
+                  <Zap size={14} color="#F59E0B" />
+                  <Text className="text-white text-sm font-medium">{s.label}</Text>
+                  <Text className="text-neutral-500 text-xs">₹{s.amount}</Text>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </Animatable.View>
+        )}
+
+        {/* Spending Streak + Budget Warnings Row */}
+        {(streak > 0 || budgetWarnings.length > 0) && (
+          <View className="mt-4 gap-3">
+            {streak > 0 && (
+              <Animatable.View animation="fadeInLeft" duration={500}>
+                <View className="bg-[#0F0F12] border border-neutral-800 rounded-2xl p-4 flex-row items-center gap-3">
+                  <Flame size={20} color="#F97316" />
+                  <View>
+                    <Text className="text-white font-bold text-lg">{streak} day streak</Text>
+                    <Text className="text-neutral-500 text-xs">Under daily average spending</Text>
+                  </View>
+                </View>
+              </Animatable.View>
+            )}
+
+            {budgetWarnings.map((w) => (
+              <Animatable.View key={w.category} animation="fadeInRight" duration={500}>
+                <View className={`rounded-2xl p-4 border ${
+                  w.spent >= w.limit
+                    ? "bg-red-500/10 border-red-500/30"
+                    : "bg-yellow-500/10 border-yellow-500/30"
+                }`}>
+                  <Text className={`font-semibold text-sm ${
+                    w.spent >= w.limit ? "text-red-400" : "text-yellow-400"
+                  }`}>
+                    {w.spent >= w.limit ? "🚨" : "⚠️"} {w.category.charAt(0).toUpperCase() + w.category.slice(1)}: ₹{w.spent.toFixed(0)} / ₹{w.limit.toFixed(0)}
+                    {w.spent >= w.limit ? " — Over budget!" : " — Nearing limit"}
+                  </Text>
+                </View>
+              </Animatable.View>
+            ))}
+          </View>
+        )}
 
         {/* Main Balance Card */}
         <Animatable.View

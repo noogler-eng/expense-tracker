@@ -1,14 +1,17 @@
-import colors from "@/utils/helper/colors";
 import { useRouter } from "expo-router";
 import {
+  BarChart3,
+  CheckCircle,
   Clock,
   DollarSign,
   Home,
-  Info,
   Plus,
   Receipt,
+  Search,
   User,
-  UserPlus
+  UserPlus,
+  Users,
+  X,
 } from "lucide-react-native";
 import React, { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
@@ -16,6 +19,7 @@ import Animated, {
   useAnimatedStyle,
   useSharedValue,
   withSpring,
+  withTiming,
 } from "react-native-reanimated";
 
 const FloatingActionMenu = (props: {
@@ -24,130 +28,132 @@ const FloatingActionMenu = (props: {
   onClose: () => void;
 }) => {
   const [open, setOpen] = useState(false);
-  const offset = useSharedValue(0);
+  const progress = useSharedValue(0);
   const router = useRouter();
 
   const toggleMenu = () => {
-    setOpen(!open);
-    offset.value = open ? 0 : 1;
-    if (props.isOpen) props.onClose();
-    else props.onOpen();
+    const next = !open;
+    setOpen(next);
+    progress.value = withSpring(next ? 1 : 0, { damping: 15, stiffness: 120 });
+    if (next) props.onOpen();
+    else props.onClose();
   };
 
-  const animatedStyle = (index: number) =>
-    useAnimatedStyle(() => ({
-      transform: [
-        { translateY: withSpring(-index * 70 * offset.value) },
-        { scale: withSpring(offset.value) },
-      ],
-      opacity: withSpring(offset.value),
-    }));
+  const navigate = (link: string) => {
+    toggleMenu();
+    // @ts-ignore
+    router.replace(link);
+  };
 
-  const labelStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: withSpring(offset.value ? 0 : 20) }],
-    opacity: withSpring(offset.value),
+  const overlayStyle = useAnimatedStyle(() => ({
+    opacity: withTiming(progress.value, { duration: 200 }),
+    pointerEvents: progress.value > 0.5 ? "auto" : "none",
   }));
 
-  const iconStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: withSpring(offset.value ? 1 : 0.7) }],
+  const gridStyle = useAnimatedStyle(() => ({
+    transform: [
+      { translateY: withSpring(progress.value ? 0 : 80, { damping: 18, stiffness: 100 }) },
+      { scale: withSpring(progress.value ? 1 : 0.9, { damping: 18, stiffness: 100 }) },
+    ],
+    opacity: withTiming(progress.value, { duration: 250 }),
   }));
 
   const plusStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${offset.value * 45}deg` }],
+    transform: [{ rotate: `${progress.value * 45}deg` }],
   }));
 
   const actions = [
-    { icon: <Home size={20} color={colors.white} />, label: "Home", link: "/" },
-    {
-      icon: <UserPlus size={20} color={colors.white} />,
-      label: "Add Friend",
-      link: "/addfriend",
-    },
-    {
-      icon: <Receipt size={20} color={colors.white} />,
-      label: "Split Bill",
-      link: "/splitbill",
-    },
-    {
-      icon: <DollarSign size={20} color={colors.white} />,
-      label: "Add Expense",
-      link: "/addexpense",
-    },
-    {
-      icon: <User size={20} color={colors.white} />,
-      label: "Add Transaction",
-      link: "/addtransaction",
-    },
-    {
-      icon: <Clock size={20} color={colors.white} />,
-      label: "History",
-      link: "/history",
-    },
-    {
-      icon: <Info size={20} color={colors.white} />,
-      label: "About",
-      link: "/about",
-    }
+    { icon: <Home size={22} color="#fff" />, label: "Home", link: "/", accent: "#6366F1" },
+    { icon: <DollarSign size={22} color="#fff" />, label: "Expense", link: "/addexpense", accent: "#22C55E" },
+    { icon: <Receipt size={22} color="#fff" />, label: "Split Bill", link: "/splitbill", accent: "#F59E0B" },
+    { icon: <User size={22} color="#fff" />, label: "Transaction", link: "/addtransaction", accent: "#3B82F6" },
+    { icon: <UserPlus size={22} color="#fff" />, label: "Add Friend", link: "/addfriend", accent: "#8B5CF6" },
+    { icon: <CheckCircle size={22} color="#fff" />, label: "Settle Up", link: "/settleup", accent: "#10B981" },
+    { icon: <Users size={22} color="#fff" />, label: "Groups", link: "/groups", accent: "#EC4899" },
+    { icon: <Search size={22} color="#fff" />, label: "Search", link: "/search", accent: "#06B6D4" },
+    { icon: <BarChart3 size={22} color="#fff" />, label: "Insights", link: "/insights", accent: "#F97316" },
+    { icon: <Clock size={22} color="#fff" />, label: "History", link: "/history", accent: "#EF4444" },
   ];
 
   return (
-    <View className="absolute bottom-6 right-6 w-[260px] items-end">
-      {actions.map((action, index) => (
-        <Animated.View
-          key={action.label}
-          style={animatedStyle(index + 1)}
-          className="absolute bottom-0 right-0"
-        >
-          {/* Label + connector */}
-          <Animated.View
-            style={labelStyle}
-            className="absolute right-[56px] flex-row items-center mt-4"
-          >
-            <View className="px-4 py-[6px] rounded-full bg-neutral-900 shadow-lg">
-              <Text
-                numberOfLines={1}
-                ellipsizeMode="tail"
-                className="text-white text-xs tracking-wide"
-              >
-                {action.label}
-              </Text>
-            </View>
-
-            {/* Connector line perfectly centered */}
-            <View className="w-6 h-[1px] bg-neutral-700 ml-2 self-center" />
-          </Animated.View>
-
-          {/* Icon */}
-          <TouchableOpacity
-            // @ts-ignore
-            onPress={() => {
-              toggleMenu();
-              // @ts-ignore
-              router.replace(action.link)
-            }}
-            activeOpacity={0.85}
-          >
-            <Animated.View
-              style={iconStyle}
-              className="w-12 h-12 rounded-full bg-neutral-800 items-center justify-center shadow-lg"
-            >
-              {action.icon}
-            </Animated.View>
-          </TouchableOpacity>
-        </Animated.View>
-      ))}
-
-      {/* Main FAB */}
-      <TouchableOpacity
-        onPress={toggleMenu}
-        activeOpacity={0.9}
-        className="w-14 h-14 rounded-full bg-neutral-900 items-center justify-center shadow-xl"
+    <>
+      {/* Full-screen overlay with grid */}
+      <Animated.View
+        style={[
+          {
+            position: "absolute",
+            top: 0,
+            left: 0,
+            right: 0,
+            bottom: 0,
+            backgroundColor: "rgba(0,0,0,0.92)",
+            justifyContent: "flex-end",
+            paddingBottom: 100,
+            paddingHorizontal: 24,
+          },
+          overlayStyle,
+        ]}
       >
-        <Animated.View style={plusStyle}>
-          <Plus size={26} color={colors.white} />
+        {/* Close button at top right */}
+        <TouchableOpacity
+          onPress={toggleMenu}
+          activeOpacity={0.7}
+          style={{ position: "absolute", top: 60, right: 24, zIndex: 10 }}
+        >
+          <View className="w-10 h-10 rounded-full bg-neutral-800 items-center justify-center">
+            <X size={20} color="#fff" />
+          </View>
+        </TouchableOpacity>
+
+        {/* Title */}
+        <Animated.View style={gridStyle}>
+          <Text className="text-white text-2xl font-bold mb-6">Quick Actions</Text>
+
+          {/* Grid - 2 rows of actions */}
+          <View className="flex-row flex-wrap gap-3">
+            {actions.map((action) => (
+              <TouchableOpacity
+                key={action.label}
+                onPress={() => navigate(action.link)}
+                activeOpacity={0.8}
+                style={{ width: "30.5%" }}
+                className="items-center py-4 rounded-2xl bg-[#18181B] border border-neutral-800"
+              >
+                <View
+                  style={{ backgroundColor: action.accent + "20" }}
+                  className="w-12 h-12 rounded-full items-center justify-center mb-2"
+                >
+                  {action.icon}
+                </View>
+                <Text className="text-white text-xs font-medium" numberOfLines={1}>
+                  {action.label}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
         </Animated.View>
-      </TouchableOpacity>
-    </View>
+      </Animated.View>
+
+      {/* FAB Button - always visible */}
+      <View className="absolute bottom-6 right-6">
+        <TouchableOpacity
+          onPress={toggleMenu}
+          activeOpacity={0.9}
+          className="w-14 h-14 rounded-full bg-white items-center justify-center"
+          style={{
+            shadowColor: "#fff",
+            shadowOffset: { width: 0, height: 0 },
+            shadowOpacity: 0.15,
+            shadowRadius: 12,
+            elevation: 8,
+          }}
+        >
+          <Animated.View style={plusStyle}>
+            <Plus size={26} color="#000" />
+          </Animated.View>
+        </TouchableOpacity>
+      </View>
+    </>
   );
 };
 

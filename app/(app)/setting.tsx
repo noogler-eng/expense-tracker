@@ -4,19 +4,29 @@ import GenderIcon from "@/components/icons/GenderIcon";
 import MoneyIcon from "@/components/icons/MoneyIcon";
 import UserIcon from "@/components/icons/UserIcon";
 import LoadingScreen from "@/components/Loading";
+import Store from "@/db/Store";
 import clearCache from "@/db/helper/app/clearCache";
 import getCurrentUser from "@/db/helper/user/getCurrentUser";
-import setCurrentUser from "@/db/helper/user/setCurrentUser";
 import User from "@/types/helper/userType";
 import colors from "@/utils/helper/colors";
 import DateTimePicker from "@react-native-community/datetimepicker";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
-import { SaveIcon } from "lucide-react-native";
+import {
+  BarChart3,
+  Download,
+  Lock,
+  Repeat,
+  SaveIcon,
+  Target,
+  Zap,
+} from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import {
+  Alert,
   Platform,
   ScrollView,
+  Share,
   Text,
   TextInput,
   TouchableOpacity,
@@ -73,14 +83,14 @@ export default function Setting() {
 
     setLoading(true);
     try {
-      await setCurrentUser({
+      await Store.setCurrentUser({
         firstName: settingData.firstName.trim(),
         lastName: settingData.lastName.trim(),
         dateOfBirth: settingData.dateOfBirth,
         gender: settingData.gender,
         income: settingData.income,
-        history: [],
       });
+      Alert.alert("Saved", "Your settings have been updated.");
     } catch (error) {
       console.error("error while setting new data", error);
     } finally {
@@ -359,6 +369,69 @@ export default function Setting() {
               </Text>
             </LinearGradient>
           </TouchableOpacity>
+
+          {/* Export Data Button */}
+          <TouchableOpacity
+            onPress={async () => {
+              try {
+                const data = await Store.downloadData();
+                const json = JSON.stringify(data, null, 2);
+                await Share.share({ message: json });
+              } catch (error) {
+                console.error("Error exporting data", error);
+              }
+            }}
+            activeOpacity={0.8}
+            className="overflow-hidden rounded-2xl mb-4"
+          >
+            <LinearGradient
+              colors={["#3B82F6", "#2563EB"]}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              className="py-4 px-6 flex-row items-center justify-center"
+            >
+              <View className="mr-2">
+                <Download size={20} color="#fff" />
+              </View>
+              <Text className="text-white text-lg font-semibold">
+                Export Data
+              </Text>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          {/* Feature Links */}
+          <View className="mb-6">
+            <View className="flex-row items-center mb-4">
+              <View className="w-1 h-6 bg-orange-500 rounded-full mr-3" />
+              <Text className="text-white text-lg font-semibold">
+                Features
+              </Text>
+            </View>
+
+            <View className="bg-[#0F0F12] rounded-2xl border border-neutral-800 overflow-hidden">
+              {[
+                { icon: <Zap size={18} color="#F59E0B" />, label: "Quick Add Shortcuts", link: "/shortcuts" },
+                { icon: <Repeat size={18} color="#8B5CF6" />, label: "Recurring Expenses", link: "/recurring" },
+                { icon: <Target size={18} color="#EF4444" />, label: "Budget Limits", link: "/budgets" },
+                { icon: <BarChart3 size={18} color="#3B82F6" />, label: "Monthly Summary", link: "/summary" },
+                { icon: <BarChart3 size={18} color="#22C55E" />, label: "Insights & Analytics", link: "/insights" },
+                { icon: <Lock size={18} color="#F97316" />, label: "App Lock", link: "/applock" },
+              ].map((item, index, arr) => (
+                <TouchableOpacity
+                  key={item.label}
+                  activeOpacity={0.7}
+                  onPress={() => router.replace(item.link as any)}
+                  className={`px-5 py-4 flex-row items-center gap-4 ${
+                    index < arr.length - 1 ? "border-b border-neutral-800" : ""
+                  }`}
+                >
+                  {item.icon}
+                  <Text className="text-white text-base flex-1">{item.label}</Text>
+                  <ChevronIcon />
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
 
           {/* Info Card */}
           <View className="mt-6 bg-[#0F0F12] rounded-2xl p-4 border border-neutral-800">

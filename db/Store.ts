@@ -1,6 +1,9 @@
 import { Category } from "@/types";
 import AppData from "@/types/helper/appType";
 import Friend from "@/types/helper/friendType";
+import Group from "@/types/helper/groupType";
+import RecurringExpense from "@/types/helper/recurringType";
+import QuickAddShortcut from "@/types/helper/shortcutType";
 import Transaction from "@/types/helper/transactionType";
 import Type from "@/types/helper/typeType";
 import User from "@/types/helper/userType";
@@ -401,6 +404,7 @@ export default class Store {
         if (!userTxn) return;
 
         Object.assign(userTxn, updates);
+        await Store.saveData(appData);
         return;
       }
 
@@ -428,6 +432,14 @@ export default class Store {
       const appData = await Store.getData();
 
       if (!personId) {
+        const txn = appData.user.history?.find((t: any) => t.id === id);
+        if (txn) {
+          if (txn.type === TYPE.INCOMING) {
+            appData.totalIncoming -= txn.amount;
+          } else {
+            appData.totalOutgoing -= txn.amount;
+          }
+        }
         appData.user.history = appData.user.history?.filter(
           (t: any) => t.id !== id
         );
@@ -437,6 +449,17 @@ export default class Store {
 
       const friend = appData.friends.find((f) => f.id === personId);
       if (!friend) return;
+
+      const txn = friend.history.find((t: any) => t.id === id);
+      if (txn) {
+        if (txn.type === TYPE.INCOMING) {
+          friend.balance -= txn.amount;
+          appData.totalIncoming -= txn.amount;
+        } else {
+          friend.balance += txn.amount;
+          appData.totalOutgoing -= txn.amount;
+        }
+      }
 
       friend.history = friend.history.filter((t: any) => t.id !== id);
       await Store.saveData(appData);
@@ -455,5 +478,265 @@ export default class Store {
   //  \_______/ \______/  \_____/\___/ |__/  |__/ \_______/|__/ \______/  \_______/       \_______/ \_______/   \___/   \_______/
   static async downloadData(): Promise<AppData> {
     return await Store.getData();
+  }
+
+  // ===================== SETTLE UP =====================
+  static async settleFriend({
+    id,
+    amount,
+    description,
+  }: {
+    id: string;
+    amount: number;
+    description: string;
+  }) {
+    const appData = await Store.getData();
+    const friend = appData.friends.find((f) => f.id === id);
+    if (!friend) return;
+
+    // Positive balance = they owe you → they paid you back → you received (incoming)
+    // Negative balance = you owe them → you paid them back → you paid (outgoing)
+    const wasPositive = friend.balance > 0;
+
+    if (wasPositive) {
+      friend.balance -= amount;
+    } else {
+      friend.balance += amount;
+    }
+
+    const txn: Transaction = {
+      id: idGen(),
+      amount,
+      description,
+      type: wasPositive ? "incoming" : "outgoing",
+      category: "others",
+      date: new Date().toISOString(),
+    };
+
+    friend.history.push(txn);
+    await Store.saveData(appData);
+  }
+
+  // ===================== RECURRING EXPENSES =====================
+  static async getRecurringExpenses(): Promise<RecurringExpense[]> {
+    const appData = await Store.getData();
+    return appData.recurringExpenses || [];
+  }
+
+  static async addRecurringExpense(payload: Omit<RecurringExpense, "id" | "lastProcessed" | "active">) {
+    const appData = await Store.getData();
+    if (!appData.recurringExpenses) appData.recurringExpenses = [];
+    appData.recurringExpenses.push({
+      ...payload,
+      id: idGen(),
+      lastProcessed: undefined,
+      active: true,
+    } as RecurringExpense);
+    await Store.saveData(appData);
+  }
+
+  static async removeRecurringExpense(id: string) {
+    const appData = await Store.getData();
+    appData.recurringExpenses = (appData.recurringExpenses || []).filter((r) => r.id !== id);
+    await Store.saveData(appData);
+  }
+
+  static async processRecurringExpenses() {
+    const appData = await Store.getData();
+    const recurring = appData.recurringExpenses || [];
+    const today = new Date();
+    const todayStr = today.toISOString().split("T")[0];
+
+    for (const item of recurring) {
+      if (!item.active) continue;
+
+      let shouldProcess = false;
+      const lastDate = item.lastProcessed ? new Date(item.lastProcessed) : null;
+
+      if (item.frequency === "daily") {
+        shouldProcess = !lastDate || lastDate.toISOString().split("T")[0] !== todayStr;
+      } else if (item.frequency === "weekly") {
+        shouldProcess = !lastDate || (today.getTime() - lastDate.getTime()) >= 7 * 86400000;
+      } else if (item.frequency === "monthly") {
+        const targetDay = item.dayOfMonth || 1;
+        shouldProcess = today.getDate() === targetDay &&
+          (!lastDate || lastDate.getMonth() !== today.getMonth() || lastDate.getFullYear() !== today.getFullYear());
+      }
+
+      if (shouldProcess) {
+        const txn: Transaction = {
+          id: idGen(),
+          amount: item.amount,
+          description: `[Auto] ${item.description}`,
+          type: item.type,
+          category: item.category,
+          date: today.toISOString(),
+        };
+
+        appData.user.history.push(txn);
+        if (item.type === TYPE.INCOMING) {
+          appData.totalIncoming += item.amount;
+        } else {
+          appData.totalOutgoing += item.amount;
+        }
+        item.lastProcessed = todayStr;
+      }
+    }
+
+    await Store.saveData(appData);
+  }
+
+  // ===================== QUICK ADD SHORTCUTS =====================
+  static async getShortcuts(): Promise<QuickAddShortcut[]> {
+    const appData = await Store.getData();
+    return appData.quickAddShortcuts || [];
+  }
+
+  static async addShortcut(payload: Omit<QuickAddShortcut, "id">) {
+    const appData = await Store.getData();
+    if (!appData.quickAddShortcuts) appData.quickAddShortcuts = [];
+    appData.quickAddShortcuts.push({ ...payload, id: idGen() });
+    await Store.saveData(appData);
+  }
+
+  static async removeShortcut(id: string) {
+    const appData = await Store.getData();
+    appData.quickAddShortcuts = (appData.quickAddShortcuts || []).filter((s) => s.id !== id);
+    await Store.saveData(appData);
+  }
+
+  static async executeShortcut(id: string) {
+    const appData = await Store.getData();
+    const shortcut = (appData.quickAddShortcuts || []).find((s) => s.id === id);
+    if (!shortcut) return;
+
+    const txn: Transaction = {
+      id: idGen(),
+      amount: shortcut.amount,
+      description: shortcut.label,
+      type: shortcut.type,
+      category: shortcut.category,
+      date: new Date().toISOString(),
+    };
+
+    appData.user.history.push(txn);
+    if (shortcut.type === TYPE.INCOMING) {
+      appData.totalIncoming += shortcut.amount;
+    } else {
+      appData.totalOutgoing += shortcut.amount;
+    }
+    await Store.saveData(appData);
+  }
+
+  // ===================== BUDGETS =====================
+  static async getBudgets(): Promise<Record<string, number>> {
+    const appData = await Store.getData();
+    return appData.budgets || {};
+  }
+
+  static async setBudget(category: string, limit: number) {
+    const appData = await Store.getData();
+    if (!appData.budgets) appData.budgets = {};
+    appData.budgets[category] = limit;
+    await Store.saveData(appData);
+  }
+
+  static async removeBudget(category: string) {
+    const appData = await Store.getData();
+    if (appData.budgets) {
+      delete appData.budgets[category];
+      await Store.saveData(appData);
+    }
+  }
+
+  // ===================== GROUPS =====================
+  static async getGroups(): Promise<Group[]> {
+    const appData = await Store.getData();
+    return appData.groups || [];
+  }
+
+  static async addGroup(payload: { name: string; memberIds: string[] }) {
+    const appData = await Store.getData();
+    if (!appData.groups) appData.groups = [];
+    appData.groups.push({
+      id: idGen(),
+      name: payload.name,
+      memberIds: payload.memberIds,
+      history: [],
+      createdAt: new Date().toISOString(),
+    });
+    await Store.saveData(appData);
+  }
+
+  static async removeGroup(id: string) {
+    const appData = await Store.getData();
+    appData.groups = (appData.groups || []).filter((g) => g.id !== id);
+    await Store.saveData(appData);
+  }
+
+  static async addGroupExpense(payload: {
+    groupId: string;
+    amount: number;
+    description: string;
+    category: Category;
+    type: Type;
+  }) {
+    const appData = await Store.getData();
+    const group = (appData.groups || []).find((g) => g.id === payload.groupId);
+    if (!group) return;
+
+    const splitValue = payload.amount / group.memberIds.length;
+
+    const txn: Transaction = {
+      id: idGen(),
+      amount: payload.amount,
+      description: payload.description,
+      type: payload.type,
+      category: payload.category,
+      date: new Date().toISOString(),
+    };
+    group.history.push(txn);
+
+    group.memberIds.forEach((memberId) => {
+      const friend = appData.friends.find((f) => f.id === memberId);
+      if (friend) {
+        if (payload.type === TYPE.INCOMING) {
+          friend.balance += splitValue;
+          appData.totalIncoming += splitValue;
+        } else {
+          friend.balance -= splitValue;
+          appData.totalOutgoing += splitValue;
+        }
+
+        friend.history.push({
+          id: idGen(),
+          amount: splitValue,
+          description: `[${group.name}] ${payload.description}`,
+          type: payload.type,
+          category: payload.category,
+          date: new Date().toISOString(),
+        });
+      }
+    });
+
+    await Store.saveData(appData);
+  }
+
+  // ===================== APP LOCK =====================
+  static async getAppLock(): Promise<{ pin?: string; useBiometric?: boolean }> {
+    const appData = await Store.getData();
+    return appData.appLock || {};
+  }
+
+  static async setAppLock(payload: { pin?: string; useBiometric?: boolean }) {
+    const appData = await Store.getData();
+    appData.appLock = { ...appData.appLock, ...payload };
+    await Store.saveData(appData);
+  }
+
+  static async clearAppLock() {
+    const appData = await Store.getData();
+    appData.appLock = undefined;
+    await Store.saveData(appData);
   }
 }

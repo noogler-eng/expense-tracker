@@ -2,11 +2,10 @@ import FloatingActionMenu from "@/components/FloatingActionMenu";
 import Header from "@/components/Header";
 import Store from "@/db/Store";
 import "@/global.css";
-import { BlurView } from "expo-blur";
 import { Stack, usePathname, useRouter } from "expo-router";
 import { Settings2 } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
-import { StyleSheet, TouchableOpacity, View } from "react-native";
+import { TouchableOpacity, View } from "react-native";
 
 export default function RootLayout() {
   const pathname = usePathname();
@@ -44,14 +43,6 @@ export default function RootLayout() {
       />
 
       <Stack screenOptions={{ headerShown: false }} />
-
-      {menuOpen && (
-        <BlurView
-          intensity={100}
-          tint="dark"
-          style={StyleSheet.absoluteFillObject}
-        />
-      )}
 
       {pathname !== "/onboarding" && (
         <FloatingActionMenu

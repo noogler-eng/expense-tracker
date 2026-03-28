@@ -2,7 +2,7 @@ import addTransactionMe from "@/db/helper/txn/addTransactionMe";
 import { Category } from "@/types";
 import colors from "@/utils/helper/colors";
 import React, { useEffect, useState } from "react";
-import { Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Alert, Text, TextInput, TouchableOpacity, View } from "react-native";
 
 export default function AddTransaction() {
   const [amount, setAmount] = useState("");
@@ -25,6 +25,7 @@ export default function AddTransaction() {
       await addTransactionMe(txn);
       setAmount("");
       setDescription("");
+      Alert.alert("Saved", "Transaction recorded successfully.");
     } catch {
       console.error("Error adding transaction");
     }
@@ -91,7 +92,7 @@ export default function AddTransaction() {
         <TouchableOpacity
           onPress={() => setType("incoming")}
           className={`flex-1 py-4 mr-2 rounded-2xl items-center ${
-            type === "incoming" ? "bg-green-500/20" : "bg-[#0F0F12]"
+            type === "incoming" ? "bg-green-500/20 border border-green-500/30" : "bg-[#0F0F12]"
           }`}
         >
           <Text
@@ -99,14 +100,14 @@ export default function AddTransaction() {
               type === "incoming" ? "text-green-400" : "text-neutral-400"
             }`}
           >
-            Add
+            Income
           </Text>
         </TouchableOpacity>
 
         <TouchableOpacity
           onPress={() => setType("outgoing")}
           className={`flex-1 py-4 ml-2 rounded-2xl items-center ${
-            type === "outgoing" ? "bg-red-500/20" : "bg-[#0F0F12]"
+            type === "outgoing" ? "bg-red-500/20 border border-red-500/30" : "bg-[#0F0F12]"
           }`}
         >
           <Text
@@ -114,7 +115,7 @@ export default function AddTransaction() {
               type === "outgoing" ? "text-red-400" : "text-neutral-400"
             }`}
           >
-            Deduct
+            Expense
           </Text>
         </TouchableOpacity>
       </View>

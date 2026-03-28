@@ -1,15 +1,26 @@
 import getFriends from "@/db/helper/friends/getFriends";
 import simpleTransaction from "@/db/helper/txn/simpleTransaction";
+import { Category } from "@/types";
 import Friend from "@/types/helper/friendType";
 import colors from "@/utils/helper/colors";
 import React, { useEffect, useState } from "react";
 import {
+  Alert,
   FlatList,
+  ScrollView,
   Text,
   TextInput,
   TouchableOpacity,
   View
 } from "react-native";
+
+const CATEGORIES: { label: string; value: Category }[] = [
+  { label: "Food", value: "food" },
+  { label: "Transport", value: "transport" },
+  { label: "Entertainment", value: "entertainment" },
+  { label: "Utilities", value: "utilities" },
+  { label: "Others", value: "others" },
+];
 
 export default function AddExpense() {
   const [friends, setFriends] = useState<Friend[]>([]);
@@ -17,6 +28,7 @@ export default function AddExpense() {
   const [amount, setAmount] = useState("");
   const [description, setDescription] = useState("");
   const [type, setType] = useState<"incoming" | "outgoing">("incoming");
+  const [category, setCategory] = useState<Category>("others");
 
   useEffect(() => {
     const fetchFriends = async () => {
@@ -35,7 +47,7 @@ export default function AddExpense() {
         id: selectedFriend,
         amount: Number(amount),
         description: description || "No description",
-        category: "food" as const,
+        category: type === "outgoing" ? category : ("incoming" as Category),
         type,
       }
 
@@ -43,6 +55,8 @@ export default function AddExpense() {
       setAmount("");
       setDescription("");
       setSelectedFriend(null);
+      setCategory("others");
+      Alert.alert("Saved", "Expense recorded successfully.");
     } catch {
       console.error("Error adding expense");
     }
@@ -50,7 +64,7 @@ export default function AddExpense() {
 
 
   return (
-    <View className="flex-1 bg-[#0B0B0D] px-6 pt-4">
+    <ScrollView className="flex-1 bg-[#0B0B0D] px-6 pt-4">
       {/* Header */}
       <View className="mb-8">
         <Text className="text-white text-3xl font-bold">Add Expense</Text>
@@ -136,23 +150,26 @@ export default function AddExpense() {
       />
 
       {/* Type */}
-      <View className="flex-row mt-6 mb-10">
+      <Text className="text-neutral-500 text-xs uppercase tracking-widest mt-6 mb-2">
+        Who owes whom?
+      </Text>
+      <View className="flex-row mb-2">
         <TouchableOpacity
           onPress={() => setType("incoming")}
           className={`flex-1 py-4 mr-2 rounded-2xl items-center ${
             type === "incoming"
-              ? "bg-green-500/20"
+              ? "bg-green-500/20 border border-green-500/30"
               : "bg-[#0F0F12]"
           }`}
         >
           <Text
             className={`font-semibold ${
               type === "incoming"
-                ? colors.positiveAmount
-                : colors.neutralAmount
+                ? "text-green-400"
+                : "text-neutral-400"
             }`}
           >
-            Add
+            They Owe Me
           </Text>
         </TouchableOpacity>
 
@@ -160,7 +177,7 @@ export default function AddExpense() {
           onPress={() => setType("outgoing")}
           className={`flex-1 py-4 ml-2 rounded-2xl items-center ${
             type === "outgoing"
-              ? "bg-red-500/20"
+              ? "bg-red-500/20 border border-red-500/30"
               : "bg-[#0F0F12]"
           }`}
         >
@@ -171,10 +188,46 @@ export default function AddExpense() {
                 : "text-neutral-400"
             }`}
           >
-            Deduct
+            I Owe Them
           </Text>
         </TouchableOpacity>
       </View>
+      <Text className="text-neutral-500 text-xs mb-8">
+        {type === "incoming" ? "You paid or lent — they need to pay you back" : "They paid or lent — you need to pay them back"}
+      </Text>
+
+      {/* Category */}
+      {type === "outgoing" && (
+        <View className="mb-8">
+          <Text className="text-neutral-500 text-xs uppercase tracking-widest mb-3">
+            Category
+          </Text>
+          <View className="flex-row flex-wrap gap-3">
+            {CATEGORIES.map((cat) => {
+              const selected = category === cat.value;
+              return (
+                <TouchableOpacity
+                  key={cat.value}
+                  onPress={() => setCategory(cat.value)}
+                  className={`px-4 py-3 rounded-2xl border ${
+                    selected
+                      ? "bg-white border-white"
+                      : "bg-[#0F0F12] border-neutral-800"
+                  }`}
+                >
+                  <Text
+                    className={`text-sm font-semibold ${
+                      selected ? "text-black" : "text-neutral-400"
+                    }`}
+                  >
+                    {cat.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+        </View>
+      )}
 
       {/* CTA */}
       <TouchableOpacity
@@ -186,6 +239,6 @@ export default function AddExpense() {
           Save Expense
         </Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 }
