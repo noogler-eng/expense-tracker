@@ -1,3 +1,4 @@
+import { useTheme } from "@/components/ThemeContext";
 import getFriends from "@/db/helper/friends/getFriends";
 import removeFriend from "@/db/helper/friends/removeFriend";
 import Friend from "@/types/helper/friendType";
