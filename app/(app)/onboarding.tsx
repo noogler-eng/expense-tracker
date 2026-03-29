@@ -1,6 +1,7 @@
 import OnboardingSheet from "@/components/bottomsheets/OnboardingSheet";
 import EntryPoint from "@/components/EntryPoint";
 import LoadingScreen from "@/components/Loading";
+import { useTheme } from "@/components/ThemeContext";
 import getCurrentUser from "@/db/helper/user/getCurrentUser";
 import setCurrentUser from "@/db/helper/user/setCurrentUser";
 import User from "@/types/helper/userType";
@@ -19,6 +20,7 @@ import {
 import Animated, { FadeInDown } from "react-native-reanimated";
 
 export default function Onboarding() {
+  const { colors: t, inputStyle } = useTheme();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [loading, setLoading] = useState(false);
@@ -64,7 +66,7 @@ export default function Onboarding() {
   return (
     <>
       <KeyboardAvoidingView
-        className={`flex-1 bg-[${colors.black}]`}
+        style={{ flex: 1, backgroundColor: t.bg }}
         behavior={Platform.OS === "ios" ? "padding" : undefined}
       >
         <View className="flex-1 items-center justify-center px-6">
@@ -75,8 +77,8 @@ export default function Onboarding() {
           {/* App Name */}
           <Animated.Text
             entering={FadeInDown.duration(800).springify()}
-            className="text-white text-4xl font-bold mb-3"
-            style={{ letterSpacing: 2 }}
+            className="text-4xl font-bold mb-3"
+            style={{ letterSpacing: 2, color: t.text }}
           >
             Resolve
           </Animated.Text>
@@ -84,7 +86,8 @@ export default function Onboarding() {
           {/* Tagline */}
           <Animated.Text
             entering={FadeInDown.delay(200).duration(800)}
-            className="text-neutral-400 text-sm mb-12 text-center"
+            style={{ color: t.textSecondary }}
+            className="text-sm mb-12 text-center"
           >
             personal finance made simple
           </Animated.Text>
@@ -99,7 +102,8 @@ export default function Onboarding() {
             </Text>
             <View className="relative">
               <TextInput
-                className={`w-full bg-[${colors.inputBoxBackground}] rounded-2xl px-5 py-4 text-white text-base border border-neutral-800`}
+                style={inputStyle}
+                className="w-full rounded-2xl px-5 py-4 text-base"
                 placeholder="Enter your first name"
                 placeholderTextColor={colors.placeholder}
                 value={firstName}
@@ -119,7 +123,8 @@ export default function Onboarding() {
             </Text>
             <View className="relative">
               <TextInput
-                className={`w-full bg-[${colors.inputBoxBackground}] rounded-2xl px-5 py-4 text-white text-base border border-neutral-800`}
+                style={inputStyle}
+                className="w-full rounded-2xl px-5 py-4 text-base"
                 placeholder="Enter your last name"
                 placeholderTextColor={colors.placeholder}
                 value={lastName}

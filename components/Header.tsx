@@ -3,6 +3,7 @@ import { usePathname, useRouter } from "expo-router";
 import { Home } from "lucide-react-native";
 import React, { useEffect, useRef } from "react";
 import { Animated, Text, TouchableOpacity, View } from "react-native";
+import { useTheme } from "./ThemeContext";
 
 interface HeaderProps {
   title?: string;
@@ -106,9 +107,10 @@ export default function Header({
   });
 
   const router = useRouter();
+  const { colors: themeColors, isDark } = useTheme();
 
   return (
-    <View className="bg-[#0B0B0D] py-4 relative overflow-hidden shadow-2xl">
+    <View style={{ backgroundColor: themeColors.bg }} className="py-4 relative overflow-hidden shadow-2xl">
       {/* Background gradient overlay */}
       <View className="absolute inset-0 opacity-30">
         <LinearGradient
@@ -143,31 +145,31 @@ export default function Header({
                   className="flex-1"
                 />
               </Animated.View>
-              <Text className="text-white text-[26px] font-semibold tracking-tight">
+              <Text style={{ color: themeColors.text }} className="text-[26px] font-semibold tracking-tight">
                 {title}
               </Text>
             </View>
           </Animated.View>
 
           {subtitle && (
-            <Text className="text-neutral-400 text-[12px] mt-1 tracking-wide">
+            <Text style={{ color: themeColors.textSecondary }} className="text-[12px] mt-1 tracking-wide">
               {subtitle}
             </Text>
           )}
         </View>
 
         {/* Right component */}
-        {pathname !== "/onboarding" && pathname !== "/setting" && rightComponent && ( 
-          <View className="h-10 w-10 rounded-full bg-neutral-900 border border-neutral-800 items-center justify-center"> 
-            {rightComponent} 
+        {pathname !== "/onboarding" && pathname !== "/setting" && rightComponent && (
+          <View style={{ backgroundColor: themeColors.card, borderColor: themeColors.border }} className="h-10 w-10 rounded-full border items-center justify-center">
+            {rightComponent}
           </View>
         )}
 
-        {pathname !== "/onboarding" && pathname === "/setting" && ( 
-          <View className="h-10 w-10 rounded-full bg-neutral-900 border border-neutral-800 items-center justify-center"> 
+        {pathname !== "/onboarding" && pathname === "/setting" && (
+          <View style={{ backgroundColor: themeColors.card, borderColor: themeColors.border }} className="h-10 w-10 rounded-full border items-center justify-center">
             <TouchableOpacity onPress={() => router.replace("/")}>
-              <Home size={24} color="#eee" />
-            </TouchableOpacity> 
+              <Home size={24} color={themeColors.textSecondary} />
+            </TouchableOpacity>
           </View>
         )}
       </View>

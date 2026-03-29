@@ -7,6 +7,7 @@ interface Transaction {
   date: string;
   category?: Category;
   type: "incoming" | "outgoing";
+  paymentMethod?: "cash" | "upi" | "card";
 }
 
 export default Transaction;

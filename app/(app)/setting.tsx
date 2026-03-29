@@ -1,3 +1,4 @@
+import { useTheme } from "@/components/ThemeContext";
 import CalendarIcon from "@/components/icons/CalendarIcon";
 import ChevronIcon from "@/components/icons/ChevronIcon";
 import GenderIcon from "@/components/icons/GenderIcon";
@@ -13,443 +14,471 @@ import DateTimePicker from "@react-native-community/datetimepicker";
 import { LinearGradient } from "expo-linear-gradient";
 import { useRouter } from "expo-router";
 import {
-  BarChart3,
-  Download,
-  Lock,
-  Repeat,
-  SaveIcon,
-  Target,
-  Zap,
+ BarChart3,
+ Calculator,
+ Download,
+ Lock,
+ Moon,
+ PiggyBank,
+ Repeat,
+ SaveIcon,
+ Sun,
+ Target,
+ Zap,
 } from "lucide-react-native";
 import React, { useEffect, useState } from "react";
 import {
-  Alert,
-  Platform,
-  ScrollView,
-  Share,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  View,
+ Alert,
+ Platform,
+ ScrollView,
+ Share,
+ Text,
+ TextInput,
+ TouchableOpacity,
+ View,
 } from "react-native";
 
 export default function Setting() {
-  // User info
-  const [settingData, setSettingData] = useState({
-    firstName: "",
-    lastName: "",
-    dateOfBirth: "",
-    gender: "",
-    income: 0,
-  });
+ // User info
+ const [settingData, setSettingData] = useState({
+ firstName: "",
+ lastName: "",
+ dateOfBirth: "",
+ gender: "",
+ income: 0,
+ });
 
-  // DOB Picker
-  const [dobDate, setDobDate] = useState<Date | null>(null);
-  const [showDatePicker, setShowDatePicker] = useState(false);
+ // DOB Picker
+ const [dobDate, setDobDate] = useState<Date | null>(null);
+ const [showDatePicker, setShowDatePicker] = useState(false);
 
-  // Helpers
-  const [loading, setLoading] = useState(false);
-  const router = useRouter();
+ // Helpers
+ const [loading, setLoading] = useState(false);
+ const router = useRouter();
 
-  // Load user data
-  useEffect(() => {
-    const loadUser = async () => {
-      try {
-        const user: User | undefined = await getCurrentUser();
-        setSettingData({
-          firstName: user?.firstName || "",
-          lastName: user?.lastName || "",
-          dateOfBirth: user?.dateOfBirth || "",
-          gender: user?.gender || "",
-          income: user?.income || 0,
-        });
+ // Load user data
+ useEffect(() => {
+ const loadUser = async () => {
+ try {
+ const user: User | undefined = await getCurrentUser();
+ setSettingData({
+ firstName: user?.firstName || "",
+ lastName: user?.lastName || "",
+ dateOfBirth: user?.dateOfBirth || "",
+ gender: user?.gender || "",
+ income: user?.income || 0,
+ });
 
-        if (user?.dateOfBirth) {
-          const parsedDate = new Date(user.dateOfBirth);
-          if (!isNaN(parsedDate.getTime())) {
-            setDobDate(parsedDate);
-          }
-        }
-      } catch (error) {
-        console.error("Failed to load user data", error);
-      }
-    };
+ if (user?.dateOfBirth) {
+ const parsedDate = new Date(user.dateOfBirth);
+ if (!isNaN(parsedDate.getTime())) {
+ setDobDate(parsedDate);
+ }
+ }
+ } catch (error) {
+ console.error("Failed to load user data", error);
+ }
+ };
 
-    loadUser();
-  }, []);
+ loadUser();
+ }, []);
 
-  const handleSave = async () => {
-    if (!settingData.firstName.trim() || !settingData.lastName.trim()) return;
+ const handleSave = async () => {
+ if (!settingData.firstName.trim() || !settingData.lastName.trim()) return;
 
-    setLoading(true);
-    try {
-      await Store.setCurrentUser({
-        firstName: settingData.firstName.trim(),
-        lastName: settingData.lastName.trim(),
-        dateOfBirth: settingData.dateOfBirth,
-        gender: settingData.gender,
-        income: settingData.income,
-      });
-      Alert.alert("Saved", "Your settings have been updated.");
-    } catch (error) {
-      console.error("error while setting new data", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+ setLoading(true);
+ try {
+ await Store.setCurrentUser({
+ firstName: settingData.firstName.trim(),
+ lastName: settingData.lastName.trim(),
+ dateOfBirth: settingData.dateOfBirth,
+ gender: settingData.gender,
+ income: settingData.income,
+ });
+ Alert.alert("Saved", "Your settings have been updated.");
+ } catch (error) {
+ console.error("error while setting new data", error);
+ } finally {
+ setLoading(false);
+ }
+ };
 
-  const handleClearCache = async () => {
-    setLoading(true);
-    try {
-      await clearCache();
-      router.replace("/onboarding");
-    } catch (error) {
-      console.error("error while clearing cache", error);
-    } finally {
-      setLoading(false);
-    }
-  };
+ const handleClearCache = async () => {
+ setLoading(true);
+ try {
+ await clearCache();
+ router.replace("/onboarding");
+ } catch (error) {
+ console.error("error while clearing cache", error);
+ } finally {
+ setLoading(false);
+ }
+ };
 
-  const genderOptions = ["Male", "Female", "Non-binary", "Prefer not to say"];
+ const { isDark, toggleTheme, colors: t, cardStyle, inputStyle } = useTheme();
+ const genderOptions = ["Male", "Female", "Non-binary", "Prefer not to say"];
 
-  if (loading) {
-    return <LoadingScreen />;
-  }
+ if (loading) {
+ return <LoadingScreen />;
+ }
 
-  return (
-    <View className="flex-1 bg-[#0B0B0D]">
-      <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
-        <View className="px-6 pt-8 pb-8">
-          {/* Header */}
-          <View className="mb-8">
-            <Text className="text-white text-3xl font-bold mb-2">Settings</Text>
-            <Text className="text-neutral-400 text-sm">
-              Manage your personal information
-            </Text>
-          </View>
+ return (
+ <View style={{ flex: 1, backgroundColor: t.bg }}>
+ <ScrollView className="flex-1" showsVerticalScrollIndicator={false}>
+ <View className="px-6 pt-8 pb-8">
+ {/* Header */}
+ <View className="mb-8">
+ <Text style={{ color: t.text }} className="text-3xl font-bold mb-2">Settings</Text>
+ <Text style={{ color: t.textSecondary }} className="text-sm">
+ Manage your personal information
+ </Text>
+ </View>
 
-          {/* Profile Section */}
-          <View className="mb-6">
-            <View className="flex-row items-center mb-4">
-              <View className="w-1 h-6 bg-purple-500 rounded-full mr-3" />
-              <Text className="text-white text-lg font-semibold">
-                Profile Information
-              </Text>
-            </View>
+ {/* Theme Toggle */}
+ <TouchableOpacity
+ onPress={toggleTheme}
+ activeOpacity={0.8}
+ style={{ backgroundColor: t.card, borderColor: t.border }}
+ style={cardStyle} className="rounded-2xl p-4 mb-6 flex-row items-center justify-between"
+ >
+ <View className="flex-row items-center gap-3">
+ {isDark ? <Moon size={20} color="#8B5CF6" /> : <Sun size={20} color="#F59E0B" />}
+ <View>
+ <Text style={{ color: t.text }} className="font-semibold">Appearance</Text>
+ <Text style={{ color: t.textMuted }} className="text-xs mt-1">{isDark ? "Dark Mode" : "Light Mode"}</Text>
+ </View>
+ </View>
+ <View className={`w-12 h-7 rounded-full p-1 ${isDark ? "bg-purple-500" : "bg-yellow-500"}`}>
+ <View className={`w-5 h-5 rounded-full bg-white ${isDark ? "ml-auto" : ""}`} />
+ </View>
+ </TouchableOpacity>
 
-            {/* First Name */}
-            <View className="mb-5">
-              <Text className="text-neutral-400 text-sm mb-2 ml-1">
-                First Name
-              </Text>
-              <View className="relative">
-                <View className="absolute left-4 top-1/2 -mt-2.5 z-10">
-                  <UserIcon />
-                </View>
-                <TextInput
-                  value={settingData.firstName}
-                  onChangeText={(text) =>
-                    setSettingData({ ...settingData, firstName: text })
-                  }
-                  placeholder="Enter your first name"
-                  placeholderTextColor={colors.placeholder}
-                  autoCapitalize="words"
-                  className="bg-[#0F0F12] text-white pl-14 pr-5 py-4 rounded-2xl border border-neutral-800 text-base z-[-10]"
-                />
-              </View>
-            </View>
+ {/* Profile Section */}
+ <View className="mb-6">
+ <View className="flex-row items-center mb-4">
+ <View className="w-1 h-6 bg-purple-500 rounded-full mr-3" />
+ <Text style={{ color: t.text }} className="text-lg font-semibold">
+ Profile Information
+ </Text>
+ </View>
 
-            {/* Last Name */}
-            <View className="mb-5">
-              <Text className="text-neutral-400 text-sm mb-2 ml-1">
-                Last Name
-              </Text>
-              <View className="relative">
-                <View className="absolute left-4 top-1/2 -mt-2.5 z-10">
-                  <UserIcon />
-                </View>
-                <TextInput
-                  value={settingData.lastName}
-                  onChangeText={(text) =>
-                    setSettingData({ ...settingData, lastName: text })
-                  }
-                  placeholder="Enter your last name"
-                  placeholderTextColor={colors.placeholder}
-                  autoCapitalize="words"
-                  className="bg-[#0F0F12] text-white pl-14 pr-5 py-4 rounded-2xl border border-neutral-800 text-base"
-                />
-              </View>
-            </View>
-          </View>
+ {/* First Name */}
+ <View className="mb-5">
+ <Text style={{ color: t.textSecondary }} className="text-sm mb-2 ml-1">
+ First Name
+ </Text>
+ <View className="relative">
+ <View className="absolute left-4 top-1/2 -mt-2.5 z-10">
+ <UserIcon />
+ </View>
+ <TextInput
+ value={settingData.firstName}
+ onChangeText={(text) =>
+ setSettingData({ ...settingData, firstName: text })
+ }
+ placeholder="Enter your first name"
+ placeholderTextColor={colors.placeholder}
+ autoCapitalize="words"
+ style={{ backgroundColor: t.card, borderColor: t.border, color: t.text }} className="pl-14 pr-5 py-4 rounded-2xl border text-base z-[-10]"
+ />
+ </View>
+ </View>
 
-          {/* Personal Details Section */}
-          <View className="mb-6">
-            <View className="flex-row items-center mb-4">
-              <View className="w-1 h-6 bg-pink-500 rounded-full mr-3" />
-              <Text className="text-white text-lg font-semibold">
-                Personal Details
-              </Text>
-            </View>
+ {/* Last Name */}
+ <View className="mb-5">
+ <Text style={{ color: t.textSecondary }} className="text-sm mb-2 ml-1">
+ Last Name
+ </Text>
+ <View className="relative">
+ <View className="absolute left-4 top-1/2 -mt-2.5 z-10">
+ <UserIcon />
+ </View>
+ <TextInput
+ value={settingData.lastName}
+ onChangeText={(text) =>
+ setSettingData({ ...settingData, lastName: text })
+ }
+ placeholder="Enter your last name"
+ placeholderTextColor={colors.placeholder}
+ autoCapitalize="words"
+ style={{ backgroundColor: t.card, borderColor: t.border, color: t.text }} className="pl-14 pr-5 py-4 rounded-2xl border text-base"
+ />
+ </View>
+ </View>
+ </View>
 
-            {/* Date of Birth */}
-            <View className="mb-5">
-              <Text className="text-neutral-400 text-sm mb-2 ml-1">
-                Date of Birth
-              </Text>
-              <TouchableOpacity
-                activeOpacity={0.7}
-                onPress={() => setShowDatePicker(true)}
-                className="relative"
-              >
-                <View className="absolute left-4 top-1/2 -mt-2.5 z-10">
-                  <CalendarIcon />
-                </View>
-                <View className="bg-[#0F0F12] pl-14 pr-5 py-4 rounded-2xl border border-neutral-800 flex-row items-center justify-between">
-                  <Text
-                    className={`text-base ${
-                      settingData.dateOfBirth
-                        ? "text-white"
-                        : "text-neutral-500"
-                    }`}
-                  >
-                    {settingData.dateOfBirth || "Select date of birth"}
-                  </Text>
-                  <ChevronIcon />
-                </View>
-              </TouchableOpacity>
-            </View>
+ {/* Personal Details Section */}
+ <View className="mb-6">
+ <View className="flex-row items-center mb-4">
+ <View className="w-1 h-6 bg-pink-500 rounded-full mr-3" />
+ <Text style={{ color: t.text }} className="text-lg font-semibold">
+ Personal Details
+ </Text>
+ </View>
 
-            {showDatePicker && (
-              <DateTimePicker
-                value={dobDate ?? new Date(2000, 0, 1)}
-                mode="date"
-                display={Platform.OS === "ios" ? "spinner" : "default"}
-                maximumDate={new Date()}
-                themeVariant="dark"
-                onChange={(_, selectedDate) => {
-                  setShowDatePicker(false);
-                  if (selectedDate) {
-                    setDobDate(selectedDate);
-                    setSettingData({
-                      ...settingData,
-                      dateOfBirth: selectedDate.toISOString().split("T")[0],
-                    });
-                  }
-                }}
-              />
-            )}
+ {/* Date of Birth */}
+ <View className="mb-5">
+ <Text style={{ color: t.textSecondary }} className="text-sm mb-2 ml-1">
+ Date of Birth
+ </Text>
+ <TouchableOpacity
+ activeOpacity={0.7}
+ onPress={() => setShowDatePicker(true)}
+ className="relative"
+ >
+ <View className="absolute left-4 top-1/2 -mt-2.5 z-10">
+ <CalendarIcon />
+ </View>
+ <View className="pl-14 pr-5 py-4 rounded-2xl border flex-row items-center justify-between">
+ <Text
+ className={`text-base ${
+ settingData.dateOfBirth
+ ? "text-white"
+ : "text-neutral-500"
+ }`}
+ >
+ {settingData.dateOfBirth || "Select date of birth"}
+ </Text>
+ <ChevronIcon />
+ </View>
+ </TouchableOpacity>
+ </View>
 
-            {/* Gender */}
-            <View className="mb-5">
-              <Text className="text-neutral-400 text-sm mb-2 ml-1">Gender</Text>
-              <View className="relative">
-                <View className="absolute left-4 top-1/2 -mt-2.5 z-10">
-                  <GenderIcon />
-                </View>
-                <View className="bg-[#0F0F12] rounded-2xl border border-neutral-800 overflow-hidden">
-                  {genderOptions.map((option, index) => (
-                    <TouchableOpacity
-                      key={option}
-                      activeOpacity={0.7}
-                      onPress={() =>
-                        setSettingData({ ...settingData, gender: option })
-                      }
-                      className={`pl-14 pr-5 py-4 flex-row items-center justify-between ${
-                        index < genderOptions.length - 1
-                          ? "border-b border-neutral-800"
-                          : ""
-                      }`}
-                    >
-                      <Text
-                        className={`text-base ${
-                          settingData.gender === option
-                            ? "text-white font-medium"
-                            : colors.neutralAmount
-                        }`}
-                      >
-                        {option}
-                      </Text>
-                      {settingData.gender === option && (
-                        <View className="w-5 h-5 rounded-full bg-indigo-500 items-center justify-center">
-                          <View className="w-2 h-2 rounded-full bg-white" />
-                        </View>
-                      )}
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-            </View>
-          </View>
+ {showDatePicker && (
+ <DateTimePicker
+ value={dobDate ?? new Date(2000, 0, 1)}
+ mode="date"
+ display={Platform.OS === "ios" ? "spinner" : "default"}
+ maximumDate={new Date()}
+ themeVariant="dark"
+ onChange={(_, selectedDate) => {
+ setShowDatePicker(false);
+ if (selectedDate) {
+ setDobDate(selectedDate);
+ setSettingData({
+ ...settingData,
+ dateOfBirth: selectedDate.toISOString().split("T")[0],
+ });
+ }
+ }}
+ />
+ )}
 
-          {/* Financial Section */}
-          <View className="mb-8">
-            <View className="flex-row items-center mb-4">
-              <View className="w-1 h-6 bg-green-500 rounded-full mr-3" />
-              <Text className="text-white text-lg font-semibold">
-                Financial Information
-              </Text>
-            </View>
+ {/* Gender */}
+ <View className="mb-5">
+ <Text style={{ color: t.textSecondary }} className="text-sm mb-2 ml-1">Gender</Text>
+ <View className="relative">
+ <View className="absolute left-4 top-1/2 -mt-2.5 z-10">
+ <GenderIcon />
+ </View>
+ <View className="rounded-2xl border overflow-hidden">
+ {genderOptions.map((option, index) => (
+ <TouchableOpacity
+ key={option}
+ activeOpacity={0.7}
+ onPress={() =>
+ setSettingData({ ...settingData, gender: option })
+ }
+ className={`pl-14 pr-5 py-4 flex-row items-center justify-between ${
+ index < genderOptions.length - 1
+ ? "border-b "
+ : ""
+ }`}
+ >
+ <Text
+ className={`text-base ${
+ settingData.gender === option
+ ? "text-white font-medium"
+ : colors.neutralAmount
+ }`}
+ >
+ {option}
+ </Text>
+ {settingData.gender === option && (
+ <View className="w-5 h-5 rounded-full bg-indigo-500 items-center justify-center">
+ <View className="w-2 h-2 rounded-full bg-white" />
+ </View>
+ )}
+ </TouchableOpacity>
+ ))}
+ </View>
+ </View>
+ </View>
+ </View>
 
-            {/* Income */}
-            <View className="mb-5">
-              <Text className="text-neutral-400 text-sm mb-2 ml-1">
-                Monthly Income
-              </Text>
-              <View className="relative">
-                <View className="absolute left-4 top-1/2 -mt-2.5 z-10">
-                  <MoneyIcon />
-                </View>
-                <TextInput
-                  value={String(settingData.income)}
-                  onChangeText={(text) =>
-                    setSettingData({ ...settingData, income: Number(text) })
-                  }
-                  placeholder="Enter your monthly income"
-                  placeholderTextColor={colors.placeholder}
-                  keyboardType="numeric"
-                  className="bg-[#0F0F12] text-white pl-14 pr-5 py-4 rounded-2xl border border-neutral-800 text-base"
-                />
-              </View>
-              <Text className="text-neutral-500 text-xs mt-2 ml-1">
-                This helps us provide better financial insights
-              </Text>
-            </View>
-          </View>
+ {/* Financial Section */}
+ <View className="mb-8">
+ <View className="flex-row items-center mb-4">
+ <View className="w-1 h-6 bg-green-500 rounded-full mr-3" />
+ <Text style={{ color: t.text }} className="text-lg font-semibold">
+ Financial Information
+ </Text>
+ </View>
 
-          {/* Save Button */}
-          <TouchableOpacity
-            onPress={handleSave}
-            disabled={loading}
-            activeOpacity={0.8}
-            className="overflow-hidden rounded-2xl"
-          >
-            <LinearGradient
-              colors={
-                loading ? ["#404040", "#262626"] : [colors.white, "#F3F4F6"]
-              }
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              className="py-4 px-6 flex-row items-center justify-center"
-            >
-              <View className="mr-2">
-                <SaveIcon />
-              </View>
-              <Text
-                className={`text-lg font-semibold ${
-                  loading ? "text-neutral-400" : "text-black"
-                }`}
-              >
-                {loading ? "Saving..." : "Save Changes"}
-              </Text>
-            </LinearGradient>
-          </TouchableOpacity>
+ {/* Income */}
+ <View className="mb-5">
+ <Text style={{ color: t.textSecondary }} className="text-sm mb-2 ml-1">
+ Monthly Income
+ </Text>
+ <View className="relative">
+ <View className="absolute left-4 top-1/2 -mt-2.5 z-10">
+ <MoneyIcon />
+ </View>
+ <TextInput
+ value={String(settingData.income)}
+ onChangeText={(text) =>
+ setSettingData({ ...settingData, income: Number(text) })
+ }
+ placeholder="Enter your monthly income"
+ placeholderTextColor={colors.placeholder}
+ keyboardType="numeric"
+ style={{ backgroundColor: t.card, borderColor: t.border, color: t.text }} className="pl-14 pr-5 py-4 rounded-2xl border text-base"
+ />
+ </View>
+ <Text style={{ color: t.textMuted }} className="text-xs mt-2 ml-1">
+ This helps us provide better financial insights
+ </Text>
+ </View>
+ </View>
 
-          {/* clear cache Button */}
-          <TouchableOpacity
-            onPress={handleClearCache}
-            disabled={loading}
-            activeOpacity={0.8}
-            className="overflow-hidden rounded-2xl my-4"
-          >
-            <LinearGradient
-              colors={loading ? ["#404040", "#262626"] : ["#FFFFFF", "#F3F4F6"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              className="py-4 px-6 flex-row items-center justify-center"
-            >
-              <View className="mr-2">
-                <SaveIcon />
-              </View>
-              <Text
-                className={`text-lg font-semibold ${
-                  loading ? "text-neutral-400" : "text-black"
-                }`}
-              >
-                {loading ? "clearing..." : "Clear Cache"}
-              </Text>
-            </LinearGradient>
-          </TouchableOpacity>
+ {/* Save Button */}
+ <TouchableOpacity
+ onPress={handleSave}
+ disabled={loading}
+ activeOpacity={0.8}
+ className="overflow-hidden rounded-2xl"
+ >
+ <LinearGradient
+ colors={
+ loading ? ["#404040", "#262626"] : [colors.white, "#F3F4F6"]
+ }
+ start={{ x: 0, y: 0 }}
+ end={{ x: 1, y: 1 }}
+ className="py-4 px-6 flex-row items-center justify-center"
+ >
+ <View className="mr-2">
+ <SaveIcon />
+ </View>
+ <Text
+ className={`text-lg font-semibold ${
+ loading ? "text-neutral-400" : "text-black"
+ }`}
+ >
+ {loading ? "Saving..." : "Save Changes"}
+ </Text>
+ </LinearGradient>
+ </TouchableOpacity>
 
-          {/* Export Data Button */}
-          <TouchableOpacity
-            onPress={async () => {
-              try {
-                const data = await Store.downloadData();
-                const json = JSON.stringify(data, null, 2);
-                await Share.share({ message: json });
-              } catch (error) {
-                console.error("Error exporting data", error);
-              }
-            }}
-            activeOpacity={0.8}
-            className="overflow-hidden rounded-2xl mb-4"
-          >
-            <LinearGradient
-              colors={["#3B82F6", "#2563EB"]}
-              start={{ x: 0, y: 0 }}
-              end={{ x: 1, y: 1 }}
-              className="py-4 px-6 flex-row items-center justify-center"
-            >
-              <View className="mr-2">
-                <Download size={20} color="#fff" />
-              </View>
-              <Text className="text-white text-lg font-semibold">
-                Export Data
-              </Text>
-            </LinearGradient>
-          </TouchableOpacity>
+ {/* clear cache Button */}
+ <TouchableOpacity
+ onPress={handleClearCache}
+ disabled={loading}
+ activeOpacity={0.8}
+ className="overflow-hidden rounded-2xl my-4"
+ >
+ <LinearGradient
+ colors={loading ? ["#404040", "#262626"] : ["#FFFFFF", "#F3F4F6"]}
+ start={{ x: 0, y: 0 }}
+ end={{ x: 1, y: 1 }}
+ className="py-4 px-6 flex-row items-center justify-center"
+ >
+ <View className="mr-2">
+ <SaveIcon />
+ </View>
+ <Text
+ className={`text-lg font-semibold ${
+ loading ? "text-neutral-400" : "text-black"
+ }`}
+ >
+ {loading ? "clearing..." : "Clear Cache"}
+ </Text>
+ </LinearGradient>
+ </TouchableOpacity>
 
-          {/* Feature Links */}
-          <View className="mb-6">
-            <View className="flex-row items-center mb-4">
-              <View className="w-1 h-6 bg-orange-500 rounded-full mr-3" />
-              <Text className="text-white text-lg font-semibold">
-                Features
-              </Text>
-            </View>
+ {/* Export Data Button */}
+ <TouchableOpacity
+ onPress={async () => {
+ try {
+ const data = await Store.downloadData();
+ const json = JSON.stringify(data, null, 2);
+ await Share.share({ message: json });
+ } catch (error) {
+ console.error("Error exporting data", error);
+ }
+ }}
+ activeOpacity={0.8}
+ className="overflow-hidden rounded-2xl mb-4"
+ >
+ <LinearGradient
+ colors={["#3B82F6", "#2563EB"]}
+ start={{ x: 0, y: 0 }}
+ end={{ x: 1, y: 1 }}
+ className="py-4 px-6 flex-row items-center justify-center"
+ >
+ <View className="mr-2">
+ <Download size={20} color="#fff" />
+ </View>
+ <Text style={{ color: t.text }} className="text-lg font-semibold">
+ Export Data
+ </Text>
+ </LinearGradient>
+ </TouchableOpacity>
 
-            <View className="bg-[#0F0F12] rounded-2xl border border-neutral-800 overflow-hidden">
-              {[
-                { icon: <Zap size={18} color="#F59E0B" />, label: "Quick Add Shortcuts", link: "/shortcuts" },
-                { icon: <Repeat size={18} color="#8B5CF6" />, label: "Recurring Expenses", link: "/recurring" },
-                { icon: <Target size={18} color="#EF4444" />, label: "Budget Limits", link: "/budgets" },
-                { icon: <BarChart3 size={18} color="#3B82F6" />, label: "Monthly Summary", link: "/summary" },
-                { icon: <BarChart3 size={18} color="#22C55E" />, label: "Insights & Analytics", link: "/insights" },
-                { icon: <Lock size={18} color="#F97316" />, label: "App Lock", link: "/applock" },
-              ].map((item, index, arr) => (
-                <TouchableOpacity
-                  key={item.label}
-                  activeOpacity={0.7}
-                  onPress={() => router.replace(item.link as any)}
-                  className={`px-5 py-4 flex-row items-center gap-4 ${
-                    index < arr.length - 1 ? "border-b border-neutral-800" : ""
-                  }`}
-                >
-                  {item.icon}
-                  <Text className="text-white text-base flex-1">{item.label}</Text>
-                  <ChevronIcon />
-                </TouchableOpacity>
-              ))}
-            </View>
-          </View>
+ {/* Feature Links */}
+ <View className="mb-6">
+ <View className="flex-row items-center mb-4">
+ <View className="w-1 h-6 bg-orange-500 rounded-full mr-3" />
+ <Text style={{ color: t.text }} className="text-lg font-semibold">
+ Features
+ </Text>
+ </View>
 
-          {/* Info Card */}
-          <View className="mt-6 bg-[#0F0F12] rounded-2xl p-4 border border-neutral-800">
-            <View className="flex-row">
-              <View className="w-1 h-full bg-blue-500 rounded-full mr-3" />
-              <View className="flex-1">
-                <Text className="text-white font-semibold mb-1">
-                  Privacy Note
-                </Text>
-                <Text className="text-neutral-400 text-sm leading-5">
-                  Your personal information is encrypted and stored securely. We
-                  never share your data with third parties.
-                </Text>
-              </View>
-            </View>
-          </View>
-        </View>
-      </ScrollView>
-    </View>
-  );
+ <View className="rounded-2xl border overflow-hidden">
+ {[
+ { icon: <Zap size={18} color="#F59E0B" />, label: "Quick Add Shortcuts", link: "/shortcuts" },
+ { icon: <Repeat size={18} color="#8B5CF6" />, label: "Recurring Expenses", link: "/recurring" },
+ { icon: <Target size={18} color="#EF4444" />, label: "Budget Limits", link: "/budgets" },
+ { icon: <BarChart3 size={18} color="#3B82F6" />, label: "Monthly Summary", link: "/summary" },
+ { icon: <BarChart3 size={18} color="#22C55E" />, label: "Insights & Analytics", link: "/insights" },
+ { icon: <PiggyBank size={18} color="#10B981" />, label: "Savings Goals", link: "/savings" },
+ { icon: <Calculator size={18} color="#06B6D4" />, label: "EMI Calculator", link: "/emicalc" },
+ { icon: <BarChart3 size={18} color="#EC4899" />, label: "Yearly Wrapped", link: "/wrapped" },
+ { icon: <Target size={18} color="#F59E0B" />, label: "Simplify Debts", link: "/simplify" },
+ { icon: <Lock size={18} color="#F97316" />, label: "App Lock", link: "/applock" },
+ ].map((item, index, arr) => (
+ <TouchableOpacity
+ key={item.label}
+ activeOpacity={0.7}
+ onPress={() => router.replace(item.link as any)}
+ className={`px-5 py-4 flex-row items-center gap-4 ${
+ index < arr.length - 1 ? "border-b " : ""
+ }`}
+ >
+ {item.icon}
+ <Text className="text-white text-base flex-1">{item.label}</Text>
+ <ChevronIcon />
+ </TouchableOpacity>
+ ))}
+ </View>
+ </View>
+
+ {/* Info Card */}
+ <View className="mt-6 rounded-2xl p-4 border ">
+ <View className="flex-row">
+ <View className="w-1 h-full bg-blue-500 rounded-full mr-3" />
+ <View className="flex-1">
+ <Text style={{ color: t.text }} className="font-semibold mb-1">
+ Privacy Note
+ </Text>
+ <Text style={{ color: t.textSecondary }} className="text-sm leading-5">
+ Your personal information is encrypted and stored securely. We
+ never share your data with third parties.
+ </Text>
+ </View>
+ </View>
+ </View>
+ </View>
+ </ScrollView>
+ </View>
+ );
 }

@@ -1,68 +1,74 @@
+import * as Haptics from "expo-haptics";
 import FriendList from "@/components/FriendList";
 import Store from "@/db/Store";
 import colors from "@/utils/helper/colors";
+import { useToast } from "@/components/Toast";
+import { useTheme } from "@/components/ThemeContext";
 import React, { useState } from "react";
-import { Alert, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { Text, TextInput, TouchableOpacity, View } from "react-native";
 
 export default function AddFriend() {
-  const [firstName, setFirstName] = useState("");
-  const [lastName, setLastName] = useState("");
-  const [refreshKey, setRefreshKey] = useState(0);
+ const { colors: t, isDark, cardStyle, inputStyle } = useTheme();
+ const toast = useToast();
+ const [firstName, setFirstName] = useState("");
+ const [lastName, setLastName] = useState("");
+ const [refreshKey, setRefreshKey] = useState(0);
 
-  const handleAddFriend = async () => {
-    if (!firstName.trim() || !lastName.trim()) {
-      return;
-    }
-    try {
-      await Store.addFriend({
-        firstName: firstName.trim(),
-        lastName: lastName.trim()
-      });
-      setFirstName("");
-      setLastName("");
-      setRefreshKey((prev) => prev + 1);
-      Alert.alert("Added", `${firstName.trim()} has been added.`);
-    } catch (error) {
-      console.error(error);
-    }
-  };
+ const handleAddFriend = async () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+ if (!firstName.trim() || !lastName.trim()) {
+ return;
+ }
+ try {
+ await Store.addFriend({
+ firstName: firstName.trim(),
+ lastName: lastName.trim()
+ });
+ setFirstName("");
+ setLastName("");
+ setRefreshKey((prev) => prev + 1);
+ toast.show("${firstName.trim()} has been added.");
+ } catch (error) {
+ console.error(error);
+ }
+ };
 
-  return (
-    <View className="flex-1 bg-black px-6 py-8">
-      <Text className="text-white text-2xl font-bold mb-8">Add Friend</Text>
+ return (
+ <View className="flex-1 px-6 py-8">
+ <Text style={{ color: t.text }} className="text-2xl font-bold mb-8">Add Friend</Text>
 
-      {/* First Name */}
-      <Text className="text-neutral-300 mb-2">First Name</Text>
-      <TextInput
-        value={firstName}
-        onChangeText={setFirstName}
-        placeholder="John"
-        placeholderTextColor={colors.placeholder}
-        className="bg-neutral-900 text-white px-4 py-3 rounded-xl mb-6"
-      />
+ {/* First Name */}
+ <Text className="text-neutral-300 mb-2">First Name</Text>
+ <TextInput
+ value={firstName}
+ onChangeText={setFirstName}
+ placeholder="John"
+ placeholderTextColor={colors.placeholder}
+ className="bg-neutral-900 text-white px-4 py-3 rounded-xl mb-6"
+ />
 
-      {/* Last Name */}
-      <Text className="text-neutral-300 mb-2">Last Name</Text>
-      <TextInput
-        value={lastName}
-        onChangeText={setLastName}
-        placeholder="Doe"
-        placeholderTextColor={colors.placeholder}
-        className="bg-neutral-900 text-white px-4 py-3 rounded-xl mb-10"
-      />
+ {/* Last Name */}
+ <Text className="text-neutral-300 mb-2">Last Name</Text>
+ <TextInput
+ value={lastName}
+ onChangeText={setLastName}
+ placeholder="Doe"
+ placeholderTextColor={colors.placeholder}
+ className="bg-neutral-900 text-white px-4 py-3 rounded-xl mb-10"
+ />
 
-      {/* Save Button */}
-      <TouchableOpacity
-        onPress={handleAddFriend}
-        className="bg-neutral-800 py-4 rounded-xl items-center mb-8"
-        activeOpacity={0.8}
-      >
-        <Text className="text-white text-lg font-semibold">Save Friend</Text>
-      </TouchableOpacity>
+ {/* Save Button */}
+ <TouchableOpacity
+ onPress={handleAddFriend}
+ className="bg-neutral-800 py-4 rounded-xl items-center mb-8"
+ activeOpacity={0.8}
+ >
+ <Text style={{ color: t.text }} className="text-lg font-semibold">Save Friend</Text>
+ </TouchableOpacity>
 
-      {/* Friend List */}
-      <Text className="text-neutral-400 mb-4">Your Friends</Text>
-      <FriendList refreshKey={refreshKey} setRefreshKey={setRefreshKey} />
-    </View>
-  );
+ {/* Friend List */}
+ <Text className="text-neutral-400 mb-4">Your Friends</Text>
+ <FriendList refreshKey={refreshKey} setRefreshKey={setRefreshKey} />
+ </View>
+ );
 }

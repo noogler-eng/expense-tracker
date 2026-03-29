@@ -1,3 +1,4 @@
+import * as Haptics from "expo-haptics";
 import { useRouter } from "expo-router";
 import {
   BarChart3,
@@ -16,11 +17,13 @@ import {
 import React, { useState } from "react";
 import { Text, TouchableOpacity, View } from "react-native";
 import Animated, {
+  Easing,
   useAnimatedStyle,
   useSharedValue,
-  withSpring,
   withTiming,
 } from "react-native-reanimated";
+
+const FAST = { duration: 180, easing: Easing.out(Easing.cubic) };
 
 const FloatingActionMenu = (props: {
   isOpen?: boolean;
@@ -32,9 +35,10 @@ const FloatingActionMenu = (props: {
   const router = useRouter();
 
   const toggleMenu = () => {
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
     const next = !open;
     setOpen(next);
-    progress.value = withSpring(next ? 1 : 0, { damping: 15, stiffness: 120 });
+    progress.value = withTiming(next ? 1 : 0, FAST);
     if (next) props.onOpen();
     else props.onClose();
   };
@@ -46,16 +50,16 @@ const FloatingActionMenu = (props: {
   };
 
   const overlayStyle = useAnimatedStyle(() => ({
-    opacity: withTiming(progress.value, { duration: 200 }),
-    pointerEvents: progress.value > 0.5 ? "auto" : "none",
+    opacity: progress.value,
+    pointerEvents: progress.value > 0.5 ? ("auto" as const) : ("none" as const),
   }));
 
   const gridStyle = useAnimatedStyle(() => ({
     transform: [
-      { translateY: withSpring(progress.value ? 0 : 80, { damping: 18, stiffness: 100 }) },
-      { scale: withSpring(progress.value ? 1 : 0.9, { damping: 18, stiffness: 100 }) },
+      { translateY: (1 - progress.value) * 40 },
+      { scale: 0.95 + progress.value * 0.05 },
     ],
-    opacity: withTiming(progress.value, { duration: 250 }),
+    opacity: progress.value,
   }));
 
   const plusStyle = useAnimatedStyle(() => ({
@@ -94,7 +98,7 @@ const FloatingActionMenu = (props: {
           overlayStyle,
         ]}
       >
-        {/* Close button at top right */}
+        {/* Close button */}
         <TouchableOpacity
           onPress={toggleMenu}
           activeOpacity={0.7}
@@ -105,11 +109,9 @@ const FloatingActionMenu = (props: {
           </View>
         </TouchableOpacity>
 
-        {/* Title */}
         <Animated.View style={gridStyle}>
           <Text className="text-white text-2xl font-bold mb-6">Quick Actions</Text>
 
-          {/* Grid - 2 rows of actions */}
           <View className="flex-row flex-wrap gap-3">
             {actions.map((action) => (
               <TouchableOpacity
@@ -134,7 +136,7 @@ const FloatingActionMenu = (props: {
         </Animated.View>
       </Animated.View>
 
-      {/* FAB Button - always visible */}
+      {/* FAB Button */}
       <View className="absolute bottom-6 right-6">
         <TouchableOpacity
           onPress={toggleMenu}

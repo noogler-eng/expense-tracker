@@ -1,63 +1,59 @@
+import { useTheme } from "@/components/ThemeContext";
 import React, { useEffect, useRef, useState } from "react";
 import { Animated, Easing, Text, View } from "react-native";
 import Svg, { Path } from "react-native-svg";
 
-const phrases = ["syncing", "verifying", "stabilizing"];
+const phrases = ["syncing", "loading", "almost there"];
 
 export default function LoadingScreen() {
+  const { colors: t } = useTheme();
   const waveOpacity = useRef(new Animated.Value(0.5)).current;
   const waveY = useRef(new Animated.Value(4)).current;
+  const dotScale = useRef(new Animated.Value(0.8)).current;
   const [index, setIndex] = useState(0);
 
   useEffect(() => {
     Animated.loop(
       Animated.parallel([
         Animated.sequence([
-          Animated.timing(waveOpacity, {
-            toValue: 1,
-            duration: 1600,
-            easing: Easing.inOut(Easing.ease),
-            useNativeDriver: true,
-          }),
-          Animated.timing(waveOpacity, {
-            toValue: 0.5,
-            duration: 1600,
-            easing: Easing.inOut(Easing.ease),
-            useNativeDriver: true,
-          }),
+          Animated.timing(waveOpacity, { toValue: 1, duration: 1400, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+          Animated.timing(waveOpacity, { toValue: 0.4, duration: 1400, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
         ]),
         Animated.sequence([
-          Animated.timing(waveY, {
-            toValue: -4,
-            duration: 1600,
-            easing: Easing.inOut(Easing.ease),
-            useNativeDriver: true,
-          }),
-          Animated.timing(waveY, {
-            toValue: 4,
-            duration: 1600,
-            easing: Easing.inOut(Easing.ease),
-            useNativeDriver: true,
-          }),
+          Animated.timing(waveY, { toValue: -6, duration: 1400, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+          Animated.timing(waveY, { toValue: 6, duration: 1400, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+        ]),
+        Animated.sequence([
+          Animated.timing(dotScale, { toValue: 1.2, duration: 700, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
+          Animated.timing(dotScale, { toValue: 0.8, duration: 700, easing: Easing.inOut(Easing.ease), useNativeDriver: true }),
         ]),
       ])
     ).start();
 
-    const interval = setInterval(() => {
-      setIndex((i) => (i + 1) % phrases.length);
-    }, 2200);
-
+    const interval = setInterval(() => setIndex((i) => (i + 1) % phrases.length), 2000);
     return () => clearInterval(interval);
   }, []);
 
   return (
-    <View className="flex-1 bg-[#0B0B0D] items-center justify-center">
+    <View style={{ backgroundColor: t.bg }} className="flex-1 items-center justify-center">
+      {/* Pulsing dot */}
+      <Animated.View
+        style={{
+          width: 12,
+          height: 12,
+          borderRadius: 6,
+          backgroundColor: "#6366F1",
+          marginBottom: 24,
+          transform: [{ scale: dotScale }],
+          opacity: waveOpacity,
+        }}
+      />
 
       {/* Secondary echo wave */}
       <Animated.View
         style={{
           position: "absolute",
-          opacity: 0.25,
+          opacity: 0.2,
           transform: [{ translateY: waveY }],
         }}
       >
@@ -67,6 +63,7 @@ export default function LoadingScreen() {
             stroke="#6366F1"
             strokeWidth="1.2"
             strokeLinecap="round"
+            fill="none"
           />
         </Svg>
       </Animated.View>
@@ -84,25 +81,19 @@ export default function LoadingScreen() {
             stroke="#818CF8"
             strokeWidth="2"
             strokeLinecap="round"
+            fill="none"
           />
         </Svg>
       </Animated.View>
 
-      {/* Primary system state */}
-      <Text className="text-neutral-500 text-[11px] mt-7 tracking-[3px] uppercase">
+      {/* Status text */}
+      <Text style={{ color: t.textSecondary }} className="text-[11px] mt-7 tracking-[3px] uppercase">
         {phrases[index]}
       </Text>
 
-      {/* Secondary system hint */}
-      <Text className="text-neutral-700 text-[10px] mt-2 tracking-wider">
-        establishing secure session
+      <Text style={{ color: t.textMuted }} className="text-[10px] mt-2 tracking-wider">
+        please wait
       </Text>
-
-      {/* Tertiary trust micro-copy */}
-      <Text className="text-neutral-800 text-[9px] mt-4 tracking-wide">
-        end-to-end encrypted
-      </Text>
-
     </View>
   );
 }

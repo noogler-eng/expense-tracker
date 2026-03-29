@@ -15,7 +15,7 @@
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/images/logo.png",
-        "backgroundColor": "#ffffff"
+        "backgroundColor": "#0B0B0D"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.sharad.splitwise"
@@ -30,10 +30,10 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/logo.png",
           "imageWidth": 200,
           "resizeMode": "contain",
-          "backgroundColor": "#ffffff"
+          "backgroundColor": "#0B0B0D"
         }
       ]
     ],
@@ -43,7 +43,7 @@
     "extra": {
       "router": {},
       "eas": {
-        "projectId": "22b8c895-7920-4a52-a4f3-e857d1d7260c"
+        "projectId": "82139900-e476-4579-b020-016bb9b9b1ed"
       }
     }
   }

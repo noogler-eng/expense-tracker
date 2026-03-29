@@ -2,6 +2,7 @@ import { Category } from "@/types";
 import AppData from "@/types/helper/appType";
 import Friend from "@/types/helper/friendType";
 import Group from "@/types/helper/groupType";
+import SavingsGoal from "@/types/helper/savingsGoalType";
 import RecurringExpense from "@/types/helper/recurringType";
 import QuickAddShortcut from "@/types/helper/shortcutType";
 import Transaction from "@/types/helper/transactionType";
@@ -255,11 +256,13 @@ export default class Store {
     description,
     category,
     type,
+    paymentMethod,
   }: {
     amount: number;
     description: string;
     category: Category;
     type: Type;
+    paymentMethod?: "cash" | "upi" | "card";
   }) {
     const appData = await Store.getData();
 
@@ -275,6 +278,7 @@ export default class Store {
       description,
       type,
       category,
+      paymentMethod,
       date: new Date().toISOString(),
     };
 
@@ -478,6 +482,23 @@ export default class Store {
   //  \_______/ \______/  \_____/\___/ |__/  |__/ \_______/|__/ \______/  \_______/       \_______/ \_______/   \___/   \_______/
   static async downloadData(): Promise<AppData> {
     return await Store.getData();
+  }
+
+  // ===================== UNDO =====================
+  static async undoLastTransaction(): Promise<Transaction | null> {
+    const appData = await Store.getData();
+    const history = appData.user.history;
+    if (!history || history.length === 0) return null;
+
+    const last = history.pop()!;
+    if (last.type === TYPE.INCOMING) {
+      appData.totalIncoming -= last.amount;
+    } else {
+      appData.totalOutgoing -= last.amount;
+    }
+
+    await Store.saveData(appData);
+    return last;
   }
 
   // ===================== SETTLE UP =====================
@@ -719,6 +740,41 @@ export default class Store {
       }
     });
 
+    await Store.saveData(appData);
+  }
+
+  // ===================== SAVINGS GOALS =====================
+  static async getSavingsGoals(): Promise<SavingsGoal[]> {
+    const appData = await Store.getData();
+    return appData.savingsGoals || [];
+  }
+
+  static async addSavingsGoal(payload: { name: string; targetAmount: number; deadline?: string }) {
+    const appData = await Store.getData();
+    if (!appData.savingsGoals) appData.savingsGoals = [];
+    appData.savingsGoals.push({
+      id: idGen(),
+      name: payload.name,
+      targetAmount: payload.targetAmount,
+      savedAmount: 0,
+      deadline: payload.deadline,
+      createdAt: new Date().toISOString(),
+    });
+    await Store.saveData(appData);
+  }
+
+  static async addToSavingsGoal(id: string, amount: number) {
+    const appData = await Store.getData();
+    const goal = (appData.savingsGoals || []).find((g) => g.id === id);
+    if (goal) {
+      goal.savedAmount += amount;
+      await Store.saveData(appData);
+    }
+  }
+
+  static async removeSavingsGoal(id: string) {
+    const appData = await Store.getData();
+    appData.savingsGoals = (appData.savingsGoals || []).filter((g) => g.id !== id);
     await Store.saveData(appData);
   }
 
